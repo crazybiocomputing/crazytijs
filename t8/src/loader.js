@@ -23,23 +23,26 @@
  */
  
  'use strict';
+ 
+// Data Reader
+export const csv = (filename,delimiter = ',') => {
+  const path = java.nio.file.Paths.get(filename);
+  const rows = Java.from(java.nio.file.Files.readAllLines(path));
+  
+  // Extract the headers
+  let keys = rows[0].split(delimiter);
+  if (keys[0] === ' ') {
+    keys[0] = 'ID';
+  }
 
-import Leaf from './Leaf';
-import Primitive from './Primitive';
-import Group from './Group';
-import CrazyPlot from './CrazyPlot';
-import Element from './Element';
-import Selection from './Selection';
-import {create, select} from './main';
-import {csv} from './loader';
+  // Split rows
+  let table = rows.slice(1).map( (row,index) => {
+    let cells = row.split(delimiter);
+    let v = {};
+    keys.forEach( (key,j) => v[key] = isNaN(cells[j]) ? cells[j] : parseFloat(cells[j]) );
+    return v;
+  });
+  return table;
+}
 
-
-export {
-  Leaf,
-  Primitive,Group,
-  CrazyPlot,Element,
-  Selection,
-  create,select,
-  csv
-};
 

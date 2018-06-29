@@ -23,7 +23,8 @@
  */
  
  'use strict';
- 
+
+import {Primitive} from './Primitive';
  
 // Selection
 class Selection {

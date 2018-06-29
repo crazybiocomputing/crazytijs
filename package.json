@@ -1,0 +1,27 @@
+{
+  "name": "crazy-tijs",
+  "version": "1.0.0",
+  "description": "tijs - Tools for ImageJ JavaScript",
+  "main": "tijs.js",
+  "scripts": {
+    "babel": "babel --presets es2015 js/main.js -o build/main.bundle.js",
+    "dev": "webpack"
+  },
+  "keywords": [],
+  "author": "Jean-Christophe Taveau",
+  "license": "GPL-v3",
+  "babel": {
+    "presets": [
+      "env",
+      "stage-2"
+    ]
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-stage-2": "^6.24.1",
+    "webpack": "^4.12.2",
+    "webpack-cli": "^3.0.8"
+  }
+}

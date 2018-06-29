@@ -26,6 +26,7 @@
  
 
 import {CrazyPlot} from './CrazyPlot';
+import {Element} from './Element';
 
 
 export const create = (type) => {
@@ -36,8 +37,12 @@ export const create = (type) => {
 }
 
 export const select = (selector) => {
-  if (IJ) {
-    console.log(IJ.getVersion() );
+  if (window.IJ) {
+    console.log(WindowManager.getImage(selector));
+    return new Element(WindowManager.getImage(selector));
+  }
+  else {
+    return new Element(document.querySelector(selector));
   }
 }
 

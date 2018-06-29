@@ -22,24 +22,37 @@
  * Jean-Christophe Taveau
  */
  
- 'use strict';
+'use strict';
 
-import Leaf from './Leaf';
-import Primitive from './Primitive';
-import Group from './Group';
-import CrazyPlot from './CrazyPlot';
-import Element from './Element';
-import Selection from './Selection';
-import {create, select} from './main';
-import {csv} from './loader';
+import {CrazyPlot} from './CrazyPlot';
 
+ // Element
+export class Element {
+  constructor(element) {
+    this.anchor = element;
+    this.children = [];
+  }
 
-export {
-  Leaf,
-  Primitive,Group,
-  CrazyPlot,Element,
-  Selection,
-  create,select,
-  csv
-};
+  append(type) {
+    const creators = {
+      svg: new CrazyPlot('svg',this)
+    };
+    let element = creators[type];
+    this.children.push(element);
+    return element;
+  }
+  
+  toSVG() {
+    let xml = '';
+    this.children.forEach( (child) => xml += child.toSVG());
+    if (window.IJ) {
+      // Non sense, just display SVG source code
+      return xml;
+    }
+    else {
+
+    }
+    return xml;
+  }
+}
 

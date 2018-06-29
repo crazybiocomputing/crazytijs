@@ -112,13 +112,22 @@ export class CrazyPlot extends Group {
    */
   show() {
     // Step #1 - Scan all the attributes for generating the ImageJ Plot
-    let imp = IJ.createImage(
-      "CrazyBioPlot", 
-      "RGB white", 
-      this.attributes.width, 
-      this.attributes.height,
-      1
-    );
+    let imp;
+    if (this.parent === null) {
+      imp = IJ.createImage(
+        "CrazyBioPlot", 
+        "RGB black", 
+        this.attributes.width, 
+        this.attributes.height,
+        1
+      );
+    }
+    else {
+      // TODO
+      // Add an overlay
+      imp = this.parent.anchor;
+    }
+
     let ip = imp.getProcessor();
 
     
@@ -146,6 +155,14 @@ export class CrazyPlot extends Group {
     });
     // Close tag
     xml += '</svg>\n';
+    
+    // Attach SVG to HTML5 Element from DOM if any
+    if (! window.IJ && this.parent !== undefined) {
+      let div = document.createElement('div');
+      div.className = 'crazy_plot';
+      this.parent.anchor.appendChild(div);
+      div.innerHTML = xml;
+    }
     return xml;
   }
 
