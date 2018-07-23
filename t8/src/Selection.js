@@ -25,98 +25,108 @@
  'use strict';
 
 import {Primitive} from './Primitive';
+import {Group} from './Group';
+import {Ghost} from './Ghost';
+import {Helper} from './Helper';
  
 // Selection
-class Selection {
+export class Selection {
 
   constructor(other,parent) {
     this.selected = other;
-    this.enterSel = [];
+    this.updateSel = {nodes:other,dataset:[]};
+    this.enterSel = {nodes:[],dataset:[]};
+    this.exitSel = {nodes:[],dataset:[]};
     this.parent = parent;
-    this.use = false; // false Default, use the selected objects. True, use the `enter` objects
+    this._enter = false; // false Default, _enter the selected objects. True, _enter the `enter` objects
+    this.active = this.updateSel;
   }
 
   data(dataset) {
-
-    let num_selected = this.selected.length;
+    let num_selected = this.updateSel.nodes.length;
     let num_enter = dataset.length - num_selected;
-    this.enterSel = Array.from( 
-      {length: num_enter}, 
-      (v,i) => ({dataIndex: i + num_selected, parent: this.parent})
-    );
-
-  //  console.log('Num dataset: ' + dataset.length);
-  //  console.log('Num selected: ' + num_selected);
-  //  console.log('Num enter: ' + num_enter);
-  //  console.log(this.enterSel[0].index);
+    let num_exit = Math.max(0,this.updateSel.nodes.length - dataset.length);
+    console.log(num_selected+ ' ' + num_enter + ' ' + num_exit);
+    // Split in three sub-selections depending of data joining
+    this.updateSel.dataset = dataset.slice(0,num_selected);
+    this.enterSel.dataset = dataset.slice(num_selected);
     
-    if (num_selected > 0) {
-  //    console.log('Add Data from selected');
-      this.selected.forEach( (el,index) => el.data = dataset[index]);
-    }
-    if (num_enter > 0) {
-  //    console.log('Add Data from enter');
-      this.enterSel.forEach( (el) => el.data = dataset[el.dataIndex] );
-    }
+    this._data = dataset;
+    
+    let self = this;
+    this.enterSel.nodes = this.enterSel.dataset.map( (d,index) => self.parent.append('ghost') );
+
     return this;
   }
 
+  datum(dataset) {
+    // TODO
+    this.selected = dataset;
+  }
+  
   append(type) {
   //  console.log('append ' + type);
-    if (this.use) {
-      let parent = this.parent;
-      this.enterSel = this.enterSel.map( el => {
-        let p = new Primitive(type,parent);
-        parent.children.push(p);
-        p.data = el.data;
-        p.dataIndex = el.dataIndex;
-        return p;
-      });
-    }
-  //  console.log(' => ' + this.enterSel[0].type);
-  //  console.log(' => ' + this.enterSel[0].attributes.fill);
-  //  console.log(' => ' + this.enterSel[0].dataIndex);
-  //  console.log(' => ' + this.enterSel[0].data);
-    return this;
-  }
+    let new_nodes = this.active.nodes.map ( (n) => {
+      console.log('Create Node ' + type);
+      console.log(n);
+      // let child = t8.createNode(type,n);
+      return n.append(type);
+    });
+    console.log(this.active.new_nodes);
 
-  attr(key,v_or_func) {
-    console.log(key + '::' + v_or_func);
-    if (this.use) {
-      if (typeof v_or_func === 'function') {
-        this.enterSel.forEach ( p => {
-          // console.log(v_or_func(p.data));
-          // console.log('Modif ' + p.type);
-          p.attr(key, v_or_func(p.data) );
-        });
-      }
-      else {
-        this.enterSel.forEach ( p => p.attr(key,v_or_func));
-      }
-    }
-    else {
-      if (typeof v_or_func === 'function') {
-        this.selected.forEach ( p => {
-          // console.log(v_or_func(p.data));
-          p.attr(key, v_or_func(p.data) );
-        });
-      }
-      else {
-        this.selected.forEach ( p => p.attr(key,v_or_func));
-      }
-    }
-
-    return this;
+    let sel = new Selection(new_nodes,null).data(this.active.dataset);
+    return sel;
   }
 
   enter() {
     console.log('enter');
-    this.use = true;
+    this._enter = true;
+    this.active = this.enterSel;
     return this;
   }
 
+  exit() {
+    this.active = this.exitSel;
+    return this;
+  }
+  
+  
+  /**
+   * Set Attributes
+   *
+   * @param 
+   *
+   * @author Jean-Christophe Taveau
+   */
+  attr(key,v_or_func) {
+    console.log(key + '::' + v_or_func);
+    if (typeof v_or_func === 'function') {
+      let self = this;
+      console.log(self._data)
+      this.active.dataset.forEach ( (d,i,arr) => {
+        // console.log(v_or_func(p.data));
+        // console.log('Modif ' + p.type);
+        this.active.nodes[i].attr(key, v_or_func(d,i) );
+      });
+    }
+    else {
+      this.active.nodes.forEach ( p => p.attr(key,v_or_func));
+    }
+    return this;
+  }
+
+  /**
+   * Specific attributes
+   *
+   * @author Jean-Christophe Taveau
+   */
+  text(str) {
+    return this.attr('text_content',str);
+  }
+  
+
+
 } // End of class Selection
 
-export {Selection};
 
 

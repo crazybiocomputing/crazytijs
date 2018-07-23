@@ -42,17 +42,6 @@ export class Element {
     return element;
   }
   
-  toSVG() {
-    let xml = '';
-    this.children.forEach( (child) => xml += child.toSVG());
-    if (window.IJ) {
-      // Non sense, just display SVG source code
-      return xml;
-    }
-    else {
-
-    }
-    return xml;
-  }
+  
 }
 

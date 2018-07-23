@@ -23,33 +23,9 @@
  */
  
  'use strict';
-
-import {Leaf} from './Leaf';
-
-// Drawing Primitives 
-export class Primitive extends Leaf {
-  /**
-   * @constructor
-   */
-  constructor(type,parent) {
-    super(type,parent);
-    this.attributes = {
-      fill: 'none',
-      stroke: 'none'
-    };
+ 
+ export class Helper {
+  constructor() {
   }
-
-  /**
-   * Generate graphics via a Renderer (SVG, ImageJ, WebGL, etc.)
-   *
-   * @author Jean-Christophe Taveau
-   */
-  draw(a_renderer) {
-    a_renderer.drawPrimitive(this);
-  }
-  
-
-} // End of class Primitive
-
-
+}
 

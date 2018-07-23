@@ -22,34 +22,28 @@
  * Jean-Christophe Taveau
  */
  
- 'use strict';
+'use strict';
 
-import {Leaf} from './Leaf';
+import {LinePath} from './LinePath';
 
-// Drawing Primitives 
-export class Primitive extends Leaf {
-  /**
-   * @constructor
-   */
-  constructor(type,parent) {
-    super(type,parent);
-    this.attributes = {
-      fill: 'none',
-      stroke: 'none'
-    };
+export const arc = (data) => {
+
+}
+
+export const line = () => {
+  return new LinePath();
+}
+
+
+export const pie = (data=undefined) => {
+  let pieHelper;
+  if (data === undefined) {
+    return (pieHelper = new PieHelper() );
   }
-
-  /**
-   * Generate graphics via a Renderer (SVG, ImageJ, WebGL, etc.)
-   *
-   * @author Jean-Christophe Taveau
-   */
-  draw(a_renderer) {
-    a_renderer.drawPrimitive(this);
+  else {
+    return pieHelper.arcs();
   }
-  
-
-} // End of class Primitive
+}
 
 
 

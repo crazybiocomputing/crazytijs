@@ -9,7 +9,7 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,Image
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
@@ -22,34 +22,32 @@
  * Jean-Christophe Taveau
  */
  
- 'use strict';
+'use strict';
 
-import {Leaf} from './Leaf';
 
-// Drawing Primitives 
-export class Primitive extends Leaf {
-  /**
-   * @constructor
-   */
-  constructor(type,parent) {
-    super(type,parent);
-    this.attributes = {
-      fill: 'none',
-      stroke: 'none'
-    };
+/**
+ * Static matrix operations
+ * @class RendererIJ
+ *
+ * @author Jean-Christophe Taveau
+ */
+export const Color = {};
+
+Color.builtins = {
+  'black' : '#000000',
+  'white' : '#ffffff'
+};
+
+Color.hexToRGB = (v) => {
+  let hexa = v.slice(1); // Remove #
+  if (hexa.length === 3) {
+    // Dirty way :-(
+    let w = `${hexa[0]}${hexa[0]}${hexa[1]}${hexa[1]}${hexa[2]}${hexa[2]}`;
+    return parseInt(w,16);
   }
-
-  /**
-   * Generate graphics via a Renderer (SVG, ImageJ, WebGL, etc.)
-   *
-   * @author Jean-Christophe Taveau
-   */
-  draw(a_renderer) {
-    a_renderer.drawPrimitive(this);
+  else if (hexa.length === 6) {
+    return parseInt(hexa,16);
   }
-  
-
-} // End of class Primitive
-
+};
 
 

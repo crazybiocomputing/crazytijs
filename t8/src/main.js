@@ -27,8 +27,22 @@
 
 import {CrazyPlot} from './CrazyPlot';
 import {Element} from './Element';
+import {Group} from './Group';
+import {Primitive} from './Primitive';
+import {Ghost} from './Ghost';
+import {Text} from './Text';
 
-
+export const createNode = (type,parentNode) => {
+  const creators = {
+    g: new Group('g',parentNode),
+    ghost: new Ghost('ghost', parentNode),
+    circle: new Primitive('circle',parentNode),
+    rect: new Primitive('rect',parentNode),
+    text: new Text('text',parentNode)
+  }
+  return creators[type];
+};
+    
 export const create = (type) => {
   switch (type) {
     case 'plot': 

@@ -22,34 +22,23 @@
  * Jean-Christophe Taveau
  */
  
- 'use strict';
+'use strict';
 
-import {Leaf} from './Leaf';
+import {ScaleLinear} from './ScaleLinear';
 
-// Drawing Primitives 
-export class Primitive extends Leaf {
-  /**
-   * @constructor
-   */
-  constructor(type,parent) {
-    super(type,parent);
-    this.attributes = {
-      fill: 'none',
-      stroke: 'none'
-    };
-  }
+export const min = (data) => {
+  return data.reduce( (_min,d) => Math.min(_min,d), Number.MAX_VALUE );
 
-  /**
-   * Generate graphics via a Renderer (SVG, ImageJ, WebGL, etc.)
-   *
-   * @author Jean-Christophe Taveau
-   */
-  draw(a_renderer) {
-    a_renderer.drawPrimitive(this);
-  }
-  
+}
 
-} // End of class Primitive
+export const max = (data) => {
+  return data.reduce( (_max,d) => Math.max(_max,d), Number.MIN_VALUE );
+}
 
+export const scaleLinear = () => {
+  return new ScaleLinear();
+}
 
+export const scaleTime = () => {
 
+}

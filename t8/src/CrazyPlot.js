@@ -26,7 +26,8 @@
 
 
 import {Group} from './Group';
-import {Selection} from './Selection';
+import {RendererIJ} from './RendererIJ';
+import {RendererSVG} from './RendererSVG';
 
  
  // Tiny Plot - trying to - follow the D3.js API and create an ImageJ Plot
@@ -40,63 +41,7 @@ export class CrazyPlot extends Group {
   constructor(type,parent) {
     super(type,parent);
   }
-
-  /**
-   * @author Jean-Christophe Taveau
-
-  attr(key,v_or_func) {
-  IJ.log(key + ' ' + v_or_func);
-  this.attributes[key] = v_or_func;
-  return this;
-}
-   */
    
-  /**
-   * @author Jean-Christophe Taveau
-
-  append(type) {
-    const creators = {
-      g: new Group()
-    };
-    let element = creators[type] || new Primitive(type);
-    element.parent = this;
-    this.children.push(element);
-    return element;
-  }
-   */
-   
-  /**
-   * @author Jean-Christophe Taveau
-   */
-  selectAll(type) {
-    let selection = this.querySelector(type);
-    return new Selection(selection,this);
-  }
-
-  /**
-   * @author Jean-Christophe Taveau
-   */
-  select(type) {
-    return this;
-  }
-
-  /**
-   * @author Jean-Christophe Taveau
-   */
-  querySelector(selectors) {
-    const selectFunc = (sel) => (el) => {
-      // TODO regex
-      if (el.name === selectors) {
-        sel.push(el);
-      }
-      return sel;
-    }
-    let selected = [];
-    this.traverse( selectFunc(selected));
-    // selected.forEach( (e,i) => console.log(i + ': ' + e.name));
-    return selected;
-  }
-
   /**
    * @author Jean-Christophe Taveau
    */
@@ -110,33 +55,28 @@ export class CrazyPlot extends Group {
    *
    * @author Jean-Christophe Taveau
    */
-  show() {
-    // Step #1 - Scan all the attributes for generating the ImageJ Plot
-    let imp;
-    if (this.parent === null) {
-      imp = IJ.createImage(
-        "CrazyBioPlot", 
-        "RGB black", 
-        this.attributes.width, 
-        this.attributes.height,
-        1
-      );
+  show(output = 'SVG') {
+    switch (output.toUpperCase()) {
+      case 'IMAGEJ': 
+      case 'IJ': 
+        RendererIJ.render(this); 
+        break;
+      case 'SVG': 
+        RendererSVG.render(this);  
+        break;
     }
-    else {
-      // TODO
-      // Add an overlay
-      imp = this.parent.anchor;
-    }
-
-    let ip = imp.getProcessor();
-
-    
-    // plot.setFrameSize(this.attributes.width,this.attributes.height);
-    // Step #2 - Draw all the primitives attached to this Plot
-    this.toProcessor(ip);
-    imp.show();
   }
 
+  /**
+   * Generate graphics via a Renderer (SVG, ImageJ, WebGL, etc.)
+   *
+   * @author Jean-Christophe Taveau
+   */
+  draw(a_renderer) {
+    a_renderer.drawRoot(this);
+  }
+  
+  
   /**
    * Generate SVG code
    *
@@ -157,7 +97,7 @@ export class CrazyPlot extends Group {
     xml += '</svg>\n';
     
     // Attach SVG to HTML5 Element from DOM if any
-    if (! window.IJ && this.parent !== undefined) {
+    if (! window.IJ && this.parent !== null) {
       let div = document.createElement('div');
       div.className = 'crazy_plot';
       this.parent.anchor.appendChild(div);

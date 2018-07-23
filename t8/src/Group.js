@@ -25,7 +25,8 @@
 'use strict';
 
 import {Leaf} from './Leaf';
-import {Primitive} from './Primitive';
+// import {Primitive} from './Primitive';
+import {Selection} from './Selection';
 
  // Group
 export class Group extends Leaf {
@@ -38,12 +39,41 @@ export class Group extends Leaf {
   }
 
   append(type) {
-    const creators = {
-      g: new Group('g',this)
-    };
-    let element = creators[type] || new Primitive(type,this);
+    let element = t8.createNode(type,this);
     this.children.push(element);
     return element;
+  }
+
+  /**
+   * @author Jean-Christophe Taveau
+   */
+  selectAll(type) {
+    let selection = this.querySelector(type);
+    return new Selection(selection,this);
+  }
+
+  /**
+   * @author Jean-Christophe Taveau
+   */
+  select(type) {
+    return this;
+  }
+
+  /**
+   * @author Jean-Christophe Taveau
+   */
+  querySelector(selectors) {
+    const selectFunc = (sel) => (el) => {
+      // TODO regex
+      if (el.name === selectors) {
+        sel.push(el);
+      }
+      return sel;
+    }
+    let selected = [];
+    this.traverse( selectFunc(selected));
+    // selected.forEach( (e,i) => console.log(i + ': ' + e.name));
+    return selected;
   }
 
   traverse(func) {
@@ -51,6 +81,16 @@ export class Group extends Leaf {
     this.children.forEach( child => child.traverse(func));
   }
 
+  /**
+   * Generate graphics via a Renderer (SVG, ImageJ, WebGL, etc.)
+   *
+   * @author Jean-Christophe Taveau
+   */
+  draw(a_renderer) {
+    a_renderer.drawGroup(this);
+  }
+  
+  
   toSVG() {
     let self = this;
     let attrList = Object.keys(this.attributes).reduce ((str,key) => `${str} ${key}="${self.attributes[key]}" `,' ');
@@ -60,10 +100,6 @@ export class Group extends Leaf {
     return xml;
   }
   
-  toProcessor(ip) {
-    // TODO
-        this.children.forEach( (child) => child.toProcessor(ip));
-  }
   
 } // End of class Group
 

@@ -24,47 +24,39 @@
  
  'use strict';
 
+import {Primitive} from './Primitive';
+
 // Drawing Primitives 
-export class Leaf {
+export class Text extends Primitive {
   /**
    * @constructor
    */
   constructor(type,parent) {
-    // console.log('Create Primitive ' + type);
-    this.type = type;
-    this.name = type;
-    this.parent = parent;
-    this.attributes = {};
+    super(type,parent);
+    console.log('Create Text');
+    this.attributes = {}; // Reset attributes
   }
 
-  attr(key,v_or_func) {
-    // isNumeric => parseFloat
-    this.attributes[key] = (!isNaN(parseFloat(v_or_func)) && isFinite(v_or_func)) ? parseFloat(v_or_func) : v_or_func;
+  /**
+   * Text
+   *
+   * @author Jean-Christophe Taveau
+   */
+  text(str) {
+    this.text = str;
+  }
+  
+  /**
+   * Text
+   *
+   * @author Jean-Christophe Taveau
+   */
+  draw(a_renderer) {
+    a_renderer.drawText(this);
+  }
+  
 
-    return this;
-  }
-
-  datum(dataset) {
-    this.dataset = dataset;
-  }
-  
-  text(a_string) {
-    this.text = a_string;
-  }
-  
-  traverse(func) {;
-    func(this);
-  }
-  
-  toSVG() {
-    let self = this;
-    // console.log('Primitive: ' + JSON.stringify(this.name) + ' ' + this.dataIndex);
-    let attrList = Object.keys(this.attributes).reduce ((str,key) => `${str} ${key}="${self.attributes[key]}" `,' ');
-    let xml = `<${self.type} ${attrList}></${self.type}>\n`;
-    return xml;
-  }
-  
-} // End of class Leaf
+} // End of class Primitive
 
 
 

@@ -24,22 +24,32 @@
  
  'use strict';
 
-import Leaf from './Leaf';
-import Primitive from './Primitive';
-import Group from './Group';
-import CrazyPlot from './CrazyPlot';
-import Element from './Element';
-import Selection from './Selection';
-import {create, select} from './main';
+import {Leaf} from './Leaf';
+import {Primitive} from './Primitive';
+import {Group} from './Group';
+import {CrazyPlot} from './CrazyPlot';
+import {Ghost} from './Ghost';
+import {Element} from './Element';
+import {Helper} from './Helper';
+import {Text} from './Text';
+import {Selection} from './Selection';
+import {ScaleLinear} from './ScaleLinear';
+import {RendererIJ} from './RendererIJ';
+import {RendererSVG} from './RendererSVG';
+import {scaleLinear,min,max} from './scale';
+import {createNode, create, select} from './main';
 import {csv} from './loader';
 
 
 export {
   Leaf,
   Primitive,Group,
-  CrazyPlot,Element,
+  CrazyPlot,Ghost,Element,
+  Helper,Text,
   Selection,
-  create,select,
+  ScaleLinear,
+  createNode, create,select,
+  scaleLinear,min,max,
   csv
 };
 
