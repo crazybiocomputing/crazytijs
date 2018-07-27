@@ -42,3 +42,11 @@ export const scaleLinear = () => {
 export const scaleTime = () => {
 
 }
+
+// Interpolators
+
+export const interpolateNumber = (a, b) => (v) => a * (1.0 - v) + b * v;
+
+export const interpolateRound = (a, b) => (v) => Math.round(a * (1.0 - v) + b * v);
+
+

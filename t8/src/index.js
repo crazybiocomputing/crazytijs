@@ -34,6 +34,8 @@ import {Helper} from './Helper';
 import {Text} from './Text';
 import {Selection} from './Selection';
 import {ScaleLinear} from './ScaleLinear';
+import {Axis} from './Axis';
+import {axisTop, axisBottom,axisRight, axisLeft} from './axes';
 import {RendererIJ} from './RendererIJ';
 import {RendererSVG} from './RendererSVG';
 import {scaleLinear,min,max} from './scale';
@@ -48,6 +50,8 @@ export {
   Helper,Text,
   Selection,
   ScaleLinear,
+  Axis,
+  axisTop, axisBottom,axisRight, axisLeft,
   createNode, create,select,
   scaleLinear,min,max,
   csv

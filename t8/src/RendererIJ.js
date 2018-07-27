@@ -68,23 +68,22 @@ export class RendererIJ {
     
     // Propagate to children
     let self = this;
-    node.children.forEach( (child) => child.draw(self));
+    node.children.forEach( (child) => {
+      child._attributes = {}; // Cumulative attributes through the graph
+      child.draw(self);
+    });
   }
   
   drawGhost(node) {
     console.log('draw ghost');
-    // Copy box from parent
-    node.box = {
-      x: node.parent.box.x, 
-      y: node.parent.box.y, 
-      w: node.parent.box.width, 
-      h: node.parent.box.height
-    };
-    node.matrix = [...node.parent.matrix];
+    RendererIJ.updateNode(node);
 
     // Propagate to children
     let self = this;
-    node.children.forEach( (child) => child.draw(self));
+    node.children.forEach( (child) => {
+      child._attributes = Object.assign({}, node._attributes); // clone
+      child.draw(self);
+    });
   }
   
   /**
@@ -94,20 +93,17 @@ export class RendererIJ {
    */
   drawGroup(node) {
     console.log('draw group');
-    console.log(node.parent.box);
+    console.log(JSON.stringify(node.parent.box));
     // TODO
-    // Update box and matrix
-    node.box = {
-      x: node.parent.box.x, 
-      y: node.parent.box.y, 
-      w: node.attributes.width, 
-      h: node.attributes.height
-    };
-    let m = (node.attributes.transform !== undefined) ? RendererIJ.getTransform(node.attributes.transform,node.box.x,node.box.y) : [1,0,0,0,1,0,0,0,1]; 
-    node.matrix = Matrix.multiply(node.parent.matrix,m);
+    RendererIJ.updateNode(node);
+    
     // Propagate to children
     let self = this;
-    node.children.forEach( (child) => child.draw(self));
+    node.children.forEach( (child) => {
+      child._attributes = Object.assign({}, node._attributes); // clone
+      console.log('child GROUP' + JSON.stringify(child._attributes));
+      child.draw(self);
+    });
   }
 
   /**
@@ -176,8 +172,34 @@ export class RendererIJ {
       // TODO
     }
     
+    // Draw Line
+    const drawLine = (node) => {
+      let ip = this.imp.getProcessor();
+      // Setup
+      ip.setColor(CrazyColor.hexToRGB(node.attributes.stroke));
+      ip.setLineWidth(node.attributes['stroke-width'] || 1);
+      // Apply matrix
+      let xy1 = [node.attributes.x1 || 0.0, node.attributes.y1 || 0.0];
+      let txy1 = Matrix.transform(xy1,node.matrix);
+      let xy2 = [node.attributes.x2 || 0.0, node.attributes.y2 || 0.0];
+      let txy2 = Matrix.transform(xy2,node.matrix);
+      // Draw...
+      ip.drawLine(txy1[0], txy1[1], txy2[0], txy2[1]);
+      console.log('End of draw line');
+    }
+    
     const drawPath = (node) => {
       // TODO
+      // https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
+      // Parse SVG path:
+      // M x y: Move,
+      // V y: Vertical move,
+      // H x: Horizontal move,
+      // L x y: Line
+      // Z: Close path
+      // C + S: Cubic Curve
+      // Q + T: Quadratic Curve
+      // A: Arc
     }
     
     const drawPolygon = (node) => {
@@ -186,22 +208,19 @@ export class RendererIJ {
     
     
     // Main
-    console.log('draw Primitive ' + node.type);
+    console.log('update Box and Matrix of Primitive ' + node.type);
     
     // TODO
     // Update box and matrix
-    node.box = {
-      x: node.parent.box.x, 
-      y: node.parent.box.y, 
-      w: node.attributes.width, 
-      h: node.attributes.height
-    };
-    let m = (node.attributes.transform !== undefined) ? RendererIJ.getTransform(node.attributes.transform,node.box.x,node.box.y) : [1,0,0,0,1,0,0,0,1]; 
-    node.matrix = Matrix.multiply(node.parent.matrix,m);
-
+    RendererIJ.updateNode(node);
+    
+    console.log('draw Primitive ' + node.type);
     switch (node.type) {
       case 'circle' : 
         drawCircle(node);
+        break;
+      case 'line' : 
+        drawLine(node);
         break;
       case 'rect' : 
         drawRectangle(node);
@@ -213,30 +232,102 @@ export class RendererIJ {
   }
 
   /**
-   * Draw String
+   * Draw Text
    *
    * @author Jean-Christophe Taveau
    */
   drawText(node) {
+    console.log('Draw Text');
+    
     const textAnchor = (ip,s,key) => {
       const keys = {'start': -1, 'middle' : 2, 'end': 1};
       return Math.max(0, ip.getStringWidth(s) / keys[key.toLowerCase()]);
     }
     
-    // Update Matrix
-    let m = (node.attributes.transform !== undefined) ? RendererIJ.getTransform(node.attributes.transform,node.box.x,node.box.y) : [1,0,0,0,1,0,0,0,1]; 
-    node.matrix = Matrix.multiply(node.parent.matrix,m);
-    // Draw Text
+    const em2pix = (value,ip) => {
+      console.log('em2pix ' + value);
+      if (value === undefined) {
+        return value;
+      }
+      
+      if (typeof value === 'string') {
+        if (value.indexOf('em') > -1) {
+          console.log('em ' + value.match(/[\d\.]+/));
+          let em = parseFloat(value.match(/[\d\.]+/)[0]);
+          let screenResolution = Toolkit.getDefaultToolkit().getScreenResolution();
+          let metrics = ip.getFontMetrics();
+          // HACK Need screen resolution
+          return Math.round(metrics.height * screenResolution / 72 * em);
+        }
+        else if (value.indexOf('px') > -1) {
+          return parseFloat(value.match(/\d+/)[0]);
+        }
+      }
+      else {
+        // Assume the number is expressed in pixels
+        return value;
+      }
+
+      console.log(metrics);
+      return pix;
+    }
+    
+    const getFamily = (fontnames) => {
+      const families = {
+        'arial': java.awt.Font.SANS_SERIF,
+        'courier' : java.awt.Font.MONOSPACED,
+        'helvetica' : java.awt.Font.SANS_SERIF,
+        'sans-serif': java.awt.Font.SANS_SERIF,
+        'sansserif': java.awt.Font.SANS_SERIF,
+        'times': java.awt.Font.SERIF
+      }
+      let family;
+      console.log('Family: ' + fontnames);
+      (fontnames.split(',') || [fontnames]).forEach (font => {
+        if ( (family = families[font.trim().toLowerCase()]) !== undefined)  {
+          return family;
+        }
+      })
+      return java.awt.Font.SANS_SERIF;
+    }
+    
+    const getStyle = (fontstyle) => {
+      const fontWeights = ['normal','lighter','100','bold','bolder','200','300','400','500','600','700','800','900'];
+      const fontStyles = ['normal','italic','oblique'];
+      if (fontstyle === 'normal' || fontstyle === 'lighter' || fontstyle === '100') {
+        return java.awt.Font.PLAIN;
+      }
+      else {
+        return (fontWeights.slice(3).filter( w => fontstyle == w).length !== 0) ? java.awt.Font.BOLD : 
+          ( (fontStyles.slice(1).filter( s => fontstyle === s).length !== 0) ? java.awt.Font.ITALIC : java.awt.Font.PLAIN);
+      }
+      return java.awt.Font.PLAIN;
+    };
+    
+    RendererIJ.updateNode(node);
+    
+    // Init Text Props
     let ip = this.imp.getProcessor();
     ip.setAntialiasedText(true);
-    ip.setColor(CrazyColor.builtins[node.attributes.fill] );
-    let text = node.attributes.text_content;
-    let xy = Matrix.transform([node.attributes.x, node.attributes.y,1.0],node.matrix);
-    let dx = node.attributes.dx || 0.0;
-    let dy = node.attributes.dy || 0.0;
-    let text_anchor = (node.attributes['text-anchor'] !== undefined) ? textAnchor(ip,text,node.attributes['text-anchor']) : 0.0;
-    console.log('draw Text ' + node.type + ' [' + xy + ']');
-    ip.drawString(text,xy[0] + dx - text_anchor, xy[1] + dy);
+    // Set Font
+    let defaultMetrics = ip.getFontMetrics();
+    let fontFamily = getFamily(node._attributes['font-family'] || defaultMetrics.font.family);
+    let fontStyle = getStyle(node._attributes['font-style']) | getStyle(node._attributes['font-weight']); ; // TODO Font.ITALIC Font.BOLD 
+    let fontSize = em2pix(node._attributes['font-size'] || defaultMetrics.font.size);
+    console.log('font ' + fontFamily + ' ' + fontStyle + ' ' + fontSize);
+    ip.setFont(new java.awt.Font(fontFamily,fontStyle,fontSize) );
+    // Set Font Color
+    ip.setColor(new java.awt.Color(CrazyColor.predefined(node._attributes.fill)));
+    // Set text
+    let text = node._attributes.t8_text;
+    let xy = Matrix.transform([node._attributes.x, node._attributes.y,1.0],node.matrix);
+    // Set position and orientation
+    let dx = em2pix(node._attributes.dx,ip) || 0.0;
+    let dy = em2pix(node._attributes.dy,ip) || 0.0;
+    let text_anchor = (node._attributes['text-anchor'] !== undefined) ? textAnchor(ip,text,node._attributes['text-anchor']) : 0.0;
+    console.log('draw Text ' + node.type + ' [' + xy + '] [' + dx + ',' + dy + ']');
+    // Display text
+    ip.drawString(text,xy[0] + Math.round(dx) - text_anchor, xy[1] + Math.round(dy));
   }
     
   
@@ -371,6 +462,24 @@ export class RendererIJ {
     
     // M A I N
     return calcMatrix(transform_str,rotcenter_x,rotcenter_y);
+  }
+  
+  static updateNode(node) {
+    // Update attributes
+    Object.keys(node.attributes).forEach(function(key) { node._attributes[key] = node.attributes[key]; });
+    console.log(JSON.stringify(node._attributes));
+    
+    // Update box
+    node.box = {
+      x: node.parent.box.x, 
+      y: node.parent.box.y, 
+      w: node.attributes.width, 
+      h: node.attributes.height
+    };
+    
+    // Update matrix
+    let m = (node.attributes.transform !== undefined) ? RendererIJ.getTransform(node.attributes.transform,node.box.x,node.box.y) : [1,0,0,0,1,0,0,0,1]; 
+    node.matrix = Matrix.multiply(node.parent.matrix,m); 
   }
 } // End of class RendererIJ
 

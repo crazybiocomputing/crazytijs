@@ -37,6 +37,8 @@ export const createNode = (type,parentNode) => {
     g: new Group('g',parentNode),
     ghost: new Ghost('ghost', parentNode),
     circle: new Primitive('circle',parentNode),
+    line: new Primitive('line',parentNode),
+    path: new Primitive('path',parentNode),
     rect: new Primitive('rect',parentNode),
     text: new Text('text',parentNode)
   }

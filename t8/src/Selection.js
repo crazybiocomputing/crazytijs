@@ -50,7 +50,7 @@ export class Selection {
     // Split in three sub-selections depending of data joining
     this.updateSel.dataset = dataset.slice(0,num_selected);
     this.enterSel.dataset = dataset.slice(num_selected);
-    
+
     this._data = dataset;
     
     let self = this;
@@ -64,15 +64,17 @@ export class Selection {
     this.selected = dataset;
   }
   
+  /**
+   * Append
+   */
   append(type) {
   //  console.log('append ' + type);
-    let new_nodes = this.active.nodes.map ( (n) => {
-      console.log('Create Node ' + type);
+    let new_nodes = this.active.nodes.map ( (n,i) => {
+      console.log('append::Create Node #' +i + ' ' + type);
       console.log(n);
       // let child = t8.createNode(type,n);
       return n.append(type);
     });
-    console.log(this.active.new_nodes);
 
     let sel = new Selection(new_nodes,null).data(this.active.dataset);
     return sel;
@@ -121,7 +123,7 @@ export class Selection {
    * @author Jean-Christophe Taveau
    */
   text(str) {
-    return this.attr('text_content',str);
+    return this.attr('t8_text',str);
   }
   
 

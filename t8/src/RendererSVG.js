@@ -48,10 +48,17 @@ export class RendererSVG {
 
   drawNode(node) {
     let xml = '';
+    if (node === undefined) {
+    // TODO Fix bug
+      console.log('ERR: node undefined');
+      return xml;
+    }
+    
     switch (node.type) {
     case 'g': xml = this.drawGroup(node); break;
     case 'ghost' : xml = this.drawGhost(node); break;
     case 'circle':
+    case 'ellipse':
     case 'line':
     case 'path':
     case 'polygon':
@@ -59,9 +66,13 @@ export class RendererSVG {
     case 'rect': xml = this.drawPrimitive(node); break;
     case 'text': xml = this.drawText(node); break;
     case 'svg': xml = this.drawSVG(node); break;
+    default: 
+      console.log(node.type);
+      throw 'ERR: Unknown node';
     }
     return xml;
   }
+  
   
   /**
    * Draw CrazyPlot
@@ -143,10 +154,14 @@ export class RendererSVG {
    * @author Jean-Christophe Taveau
    */
   drawText(node) {
-    console.log('Text: ' + node.attributes.text_content);
     let xml = '';
-    let attrList = Object.keys(node.attributes).reduce ((str,key) => `${str} ${key}="${node.attributes[key]}" `,' ');
-    xml += `<${node.type} ${attrList}>${node.attributes.text_content}</${node.type}>\n`;
+    let attrList = Object.keys(node.attributes).reduce ((str,key) => {
+      if (key !== 't8_text') {
+        return `${str} ${key}="${node.attributes[key]}" `;
+      }
+      return str;
+    },' ');
+    xml += `<${node.type} ${attrList}>${node.attributes.t8_text}</${node.type}>\n`;
 
     return xml;
   }

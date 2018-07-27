@@ -43,7 +43,7 @@ export class Text extends Primitive {
    * @author Jean-Christophe Taveau
    */
   text(str) {
-    this.text = str;
+    this.attr('t8_text',str);
   }
   
   /**

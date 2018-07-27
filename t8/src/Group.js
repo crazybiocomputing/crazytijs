@@ -44,6 +44,13 @@ export class Group extends Leaf {
     return element;
   }
 
+  call(node) {
+    // TODO Dirty because modify `this` node.
+    // Modify `this` and append subgraph.
+    node.subgraph(this);
+    return this;
+  }
+  
   /**
    * @author Jean-Christophe Taveau
    */

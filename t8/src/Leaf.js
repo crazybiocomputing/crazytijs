@@ -43,7 +43,7 @@ export class Leaf {
 
     return this;
   }
-
+  
   datum(dataset) {
     this.dataset = dataset;
   }
