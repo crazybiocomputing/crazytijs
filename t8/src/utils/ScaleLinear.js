@@ -25,12 +25,11 @@
 'use strict';
 
 export class ScaleLinear {
-  constructor(domain=[0,1],range=[0,1]) {
+  constructor(domain=[0,1],range=[0,1],clamp=false) {
     this._domain = domain;
     this._range = range;
-    this.interpolator = function (v,d,r) {
-      return r[0] + (v - d[0])/(d[1] - d[0]) * (r[1] - r[0]);
-    };
+    this._clamp = clamp;
+    this.interpolator = t8.interpolateNumber(this._domain[0],this._domain[1]);
     this._clamp = false;
   }
   
@@ -70,7 +69,7 @@ export class ScaleLinear {
   }
   
   get(domain_v) {
-    let output =  this.interpolator(domain_v,this._domain,this._range);
+    let output =  this.interpolator((domain_v - this._range[0])/(this._range[1] - this._range[0]));
     return (this._clamp) ? Math.min(Math.max(this._range[0],output),this._range[1]): output;
   }
 }

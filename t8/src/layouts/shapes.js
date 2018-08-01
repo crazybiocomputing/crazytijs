@@ -22,10 +22,28 @@
  * Jean-Christophe Taveau
  */
  
- 'use strict';
- 
- export class Helper {
-  constructor() {
+'use strict';
+
+import {LineLayout} from './LineLayout';
+
+export const arc = (data) => {
+
+}
+
+export const line = () => {
+  return new LineLayout();
+}
+
+
+export const pie = (data=undefined) => {
+  let pieHelper;
+  if (data === undefined) {
+    return (pieLayout = new PieLayout() );
+  }
+  else {
+    return pieHelper.arcs();
   }
 }
+
+
 

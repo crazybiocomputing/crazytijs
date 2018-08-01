@@ -22,28 +22,51 @@
  * Jean-Christophe Taveau
  */
  
-'use strict';
+ 'use strict';
 
-import {LinePath} from './LinePath';
+import {Layout} from './Layout';
 
-export const arc = (data) => {
-
-}
-
-export const line = () => {
-  return new LinePath();
-}
-
-
-export const pie = (data=undefined) => {
-  let pieHelper;
-  if (data === undefined) {
-    return (pieHelper = new PieHelper() );
+/**
+ * Helper class for Polylines
+ *
+ * @author Jean-Christophe Taveau
+ */
+export class LineLayout extends Layout {
+  /**
+   * @constructor
+   */
+  constructor() {
+    super();
+    this.type = 'line';
+    this.attributes = {
+      fill: 'none',
+      stroke: 'none'
+    };
   }
-  else {
-    return pieHelper.arcs();
+  
+  generate(dataset) {
+    // generate subgraph
+    let self = this;
+    return dataset.reduce( (path,data,index) => {
+      path += (index === 0) ? 'M': 'L';
+      path += `${self.xFunc(data)},${self.yFunc(data)}`;
+      return path;
+    },
+    '');
   }
-}
+  
+  x(func) {
+    this.xFunc = func;
+    return this;
+  }
+  
+  y(func) {
+    this.yFunc = func;
+    return this;
+  }
+  
+
+} // End of class LineLayout
 
 
 

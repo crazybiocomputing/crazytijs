@@ -27,7 +27,6 @@
 import {Primitive} from './Primitive';
 import {Group} from './Group';
 import {Ghost} from './Ghost';
-import {Helper} from './Helper';
  
 // Selection
 export class Selection {

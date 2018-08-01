@@ -30,16 +30,16 @@ import {Group} from './Group';
 import {CrazyPlot} from './CrazyPlot';
 import {Ghost} from './Ghost';
 import {Element} from './Element';
-import {Helper} from './Helper';
 import {Text} from './Text';
 import {Selection} from './Selection';
-import {ScaleLinear} from './ScaleLinear';
-import {Axis} from './Axis';
-import {axisTop, axisBottom,axisRight, axisLeft} from './axes';
-import {RendererIJ} from './RendererIJ';
-import {RendererSVG} from './RendererSVG';
-import {scaleLinear,min,max} from './scale';
+import {ScaleLinear} from './utils/ScaleLinear';
+import {Axis} from './utils/Axis';
+import {axisTop, axisBottom,axisRight, axisLeft} from './utils/axes';
+import {RendererIJ} from './render/RendererIJ';
+import {RendererSVG} from './render/RendererSVG';
+import {interpolateNumber,scaleLinear,extent,min,max} from './utils/scale';
 import {createNode, create, select} from './main';
+import {line} from './layouts/shapes';
 import {csv} from './loader';
 
 
@@ -47,13 +47,14 @@ export {
   Leaf,
   Primitive,Group,
   CrazyPlot,Ghost,Element,
-  Helper,Text,
+  Text,
   Selection,
   ScaleLinear,
   Axis,
   axisTop, axisBottom,axisRight, axisLeft,
   createNode, create,select,
-  scaleLinear,min,max,
+  interpolateNumber,scaleLinear,extent,min,max,
+  line,
   csv
 };
 

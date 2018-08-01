@@ -22,6 +22,10 @@
  * Jean-Christophe Taveau
  */
  
-'use strict';
-
+ 'use strict';
+ 
+ export class Layout {
+  constructor() {
+  }
+}
 

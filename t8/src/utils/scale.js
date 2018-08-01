@@ -28,19 +28,64 @@ import {ScaleLinear} from './ScaleLinear';
 
 export const min = (data) => {
   return data.reduce( (_min,d) => Math.min(_min,d), Number.MAX_VALUE );
-
 }
 
 export const max = (data) => {
   return data.reduce( (_max,d) => Math.max(_max,d), Number.MIN_VALUE );
 }
 
+export const extent = (data) => {
+  return data.reduce( (_minmax,d) => [Math.min(_minmax[0],d),Math.max(_minmax[1],d)], [Number.MAX_VALUE,Number.MIN_VALUE]);
+}
+
 export const scaleLinear = () => {
+  //domain [0,1]
   return new ScaleLinear();
 }
 
-export const scaleTime = () => {
+export const scalePow = () => {
+  // TODO
+}
 
+export const scaleSqrt = () => {
+  // TODO
+}
+
+export const scaleLog = () => {
+  // TODO
+}
+
+
+export const scaleTime = () => {
+  // TODO
+}
+
+export const scaleSequential = () => {
+  // TODO
+}
+
+export const scaleQuantize = () => {
+  // TODO
+}
+
+export const scaleQuantile = () => {
+  // TODO
+}
+
+export const scaleThreshold = () => {
+  // TODO
+}
+
+export const scaleOrdinal = () => {
+  // TODO
+}
+
+export const scaleBand = () => {
+  // TODO
+}
+
+export const scalePoint = () => {
+  // TODO
 }
 
 // Interpolators

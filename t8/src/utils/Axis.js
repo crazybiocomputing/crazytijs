@@ -34,14 +34,18 @@ export class Axis {
   /**
    * @constructor
    */
-  constructor(orient,scale,ticks) {
-    this.scale = scale;
+  constructor(orient,scaleObj,ticks) {
+    this.scale = scaleObj;
     this.ticks = ticks;
+    this.ticks.orient = orient;
+    this.nicelabel = true;
     switch (orient) {
       case 'top': break;
       case 'bottom': break;
       case 'left': 
+        // Function
         this.ticks.axisPath = (axisLength) => `M${-ticks.size},${axisLength}H0.5V0.5H${-ticks.size}`;
+        // Geometry default parameters
         this.ticks.geom = {
           x1: 0,
           y1: 0,
@@ -60,14 +64,16 @@ export class Axis {
   /**
    *
    */
-  scale(scaleFunc) {
+  scale(scaleObj) {
+    // TODO
     return this;
   }
   
   /**
    *
    */
-  ticks() {
+  ticks(num) {
+    this.ticks.maxTicks = num;
     return this;
   }
   
@@ -81,7 +87,9 @@ export class Axis {
   /**
    *
    */
-  tickValues() {
+  tickValues(arr) {
+    this.nicelabel = false;
+    this.ticks.labels = arr;
     return this;
   }
   
@@ -95,7 +103,8 @@ export class Axis {
   /**
    *
    */
-  tickSize() {
+  tickSize(v) {
+    this.ticks.size = v;
     return this;
   }
   
@@ -103,6 +112,7 @@ export class Axis {
    *
    */
   tickSizeInner() {
+    // TODO
     return this;
   }
   
@@ -110,6 +120,7 @@ export class Axis {
    *
    */
   tickSizeOuter() {
+    // TODO
     return this;
   }
   
@@ -117,6 +128,7 @@ export class Axis {
    *
    */
   tickPadding() {
+    // TODO
     return this;
   }
 
@@ -208,14 +220,16 @@ export class Axis {
     
     console.log('AXIS ' + JSON.stringify(ticks));
     
-    // Get nice labels with Heckbert Algorithm
-    // Simple heuristic: An overall font height is about 15px + 15px as padding for sake of good looking
-    let axisLength = t8.max(this.scale._range) - t8.min(this.scale._range);
-    let maxTicks = Math.min(axisLength / 15, 20);
-    let nicelabels = this.heckbert(this.scale._domain[0],this.scale._domain[1], maxTicks);
-    console.log(nicelabels);
+    if (this.nicelabel) {
+      // Get nice labels with Heckbert Algorithm
+      // Simple heuristic: An overall font height is about 15px + 15px as padding for sake of good looking
+      let axisLength = t8.max(this.scale._range) - t8.min(this.scale._range);
+      let maxTicks = Math.min(axisLength / 15, 20);
+      this.ticks.labels = this.heckbert(this.scale._domain[0],this.scale._domain[1], maxTicks);
+      console.log(this.ticks.labels);
+    }
     ticks.data = [];
-    nicelabels.forEach( (lab, index) =>{
+    this.ticks.forEach( (lab, index) =>{
       ticks.data[index] = {
         text: lab,
         value: lab,

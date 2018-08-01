@@ -92,15 +92,13 @@ Matrix.rotate = (matrix, rot_in_degrees,rot_centerx,rot_centery) => {
   let rot = rot_in_degrees;
   let cx = rot_centerx;
   let cy = rot_centery;
-  cx += t.args[1] || 0.0;
-  cy += t.args[2] || 0.0;
 
   // Copy
   let m = [...matrix];
   
   
   // translate to origin
-  m = translate(m,cx,cy);
+  m = Matrix.translate(m,cx,cy);
 
   // rotate
   let s = Math.sin(rot / 180.0 * Math.PI);
@@ -122,7 +120,7 @@ Matrix.rotate = (matrix, rot_in_degrees,rot_centerx,rot_centery) => {
   m[8] = a22;
 
   // translate to center
-  m = translate(m,-cx,-cy);
+  m = Matrix.translate(m,-cx,-cy);
   return m;
 }
 

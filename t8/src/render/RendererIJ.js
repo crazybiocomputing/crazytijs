@@ -24,8 +24,9 @@
  
 'use strict';
 
-import {Color as CrazyColor}  from './Color';
-import {Matrix} from './Matrix';
+import {Color as CrazyColor}  from '../Color';
+import {Matrix} from '../Matrix';
+import * as Draw from './ij/drawPrimitives';
 
 
 /**
@@ -188,25 +189,6 @@ export class RendererIJ {
       console.log('End of draw line');
     }
     
-    const drawPath = (node) => {
-      // TODO
-      // https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
-      // Parse SVG path:
-      // M x y: Move,
-      // V y: Vertical move,
-      // H x: Horizontal move,
-      // L x y: Line
-      // Z: Close path
-      // C + S: Cubic Curve
-      // Q + T: Quadratic Curve
-      // A: Arc
-    }
-    
-    const drawPolygon = (node) => {
-      // TODO
-    }
-    
-    
     // Main
     console.log('update Box and Matrix of Primitive ' + node.type);
     
@@ -217,13 +199,25 @@ export class RendererIJ {
     console.log('draw Primitive ' + node.type);
     switch (node.type) {
       case 'circle' : 
-        drawCircle(node);
+        Draw.drawCircle(node,this.imp);
+        break;
+      case 'ellipse' : 
+        Draw.drawEllipse(node,this.imp);
         break;
       case 'line' : 
-        drawLine(node);
+        Draw.drawLine(node,this.imp);
+        break;
+      case 'path' : 
+        Draw.drawPath(node,this.imp);
+        break;
+      case 'polygon' : 
+        Draw.drawPolygon(node,this.imp);
+        break;
+      case 'polyline' : 
+        Draw.drawPolyline(node,this.imp);
         break;
       case 'rect' : 
-        drawRectangle(node);
+        Draw.drawRectangle(node,this.imp);
         break;
       case 'text' : 
         drawText(node);
@@ -337,6 +331,7 @@ export class RendererIJ {
    * @author Jean-Christophe Taveau
    */
   static getTransform(transform_str,rotcenter_x = 0.0,rotcenter_y = 0.0) {
+  /*
     const multiply = (a,b) => {
       out = new Array(9);
       out[0] = b[0] * a[0] + b[1] * a[3] + b[2] * a[6];
@@ -360,7 +355,7 @@ export class RendererIJ {
       out[8] = tx * matrix[2] + ty * matrix[5] + matrix[8];
       return out;
     }
-    
+    */
     const calcMatrix = (str,rcx,rcy) => {
       /*
        * SVG Transforms
@@ -387,14 +382,19 @@ export class RendererIJ {
       let m = [1,0,0,0,1,0,0,0,1]; // Identity
       let self = this;
       transf.forEach( (t) => {
+        console.log(JSON.stringify(t));
         switch (t.command) {
           case 'matrix': 
-            m = [t.args[0],t.args[1],0.0,t.args[2], t.args[3],0.0,t.args[4],t.args[5], 1.0];
+            m = Matrix.fromSVG(t.args[0],t.args[1],t.args[2],t.args[3],t.args[4],t.args[5]);
             break;
           case 'translate':
             m = Matrix.translate(m,t.args[0],t.args[1]);
           break;
-          case 'scale': 
+          case 'scale':
+            let sx = t.args[0];
+            let sy = t.args[1] || t.args[0];
+            m = Matrix.scale(m,sx,sy);
+            /*
             let x = t.args[0];
             let y = t.args[1] || t.args[0];
             m[0] *= x;
@@ -403,13 +403,17 @@ export class RendererIJ {
             m[3] *= y;
             m[4] *= y;
             m[5] *= y;
+            */
             break;
           case 'rotate':
             let rot = t.args[0];
-            let cx = rcx;
+            let cx = rcx; // Topleft corner from parent
             let cy = rcy;
             cx += t.args[1] || 0.0;
             cy += t.args[2] || 0.0;
+            m = Matrix.rotate(m,rot,cx,cy);
+            /*
+
             
             // translate to origin
             m = translate(m,cx,cy);
@@ -435,19 +439,26 @@ export class RendererIJ {
 
             // translate to center
             m = translate(m,-cx,-cy);
+            */
             
             break;
           case 'skewX': 
+            m = Matrix.skewX(m,t.args[0]);
+            /*
             let ax = Math.tan(t.args[0] / 180.0 * Math.PI);
             m[3] = ax * m[0] + m[3];
             m[4] = ax * m[1] + m[4];
             m[5] = ax * m[2] + m[5];
+            */
             break;
           case 'skewY':
+            m = Matrix.skewY(m,t.args[0]);
+            /*
             let ay = Math.tan(t.args[0] / 180.0 * Math.PI);
             m[0] = m[0] + ay * a[3];
             m[1] = m[1] + ay * a[4];
             m[2] = m[2] + ay * a[5];
+            */
             break;
         }
       });

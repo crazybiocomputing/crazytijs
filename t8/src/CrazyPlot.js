@@ -26,8 +26,8 @@
 
 
 import {Group} from './Group';
-import {RendererIJ} from './RendererIJ';
-import {RendererSVG} from './RendererSVG';
+import {RendererIJ} from './render/RendererIJ';
+import {RendererSVG} from './render/RendererSVG';
 
  
  // Tiny Plot - trying to - follow the D3.js API and create an ImageJ Plot

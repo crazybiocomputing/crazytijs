@@ -24,6 +24,8 @@
  
  'use strict';
 
+import {Layout} from './layouts/Layout';
+
 // Drawing Primitives 
 export class Leaf {
   /**
@@ -37,15 +39,29 @@ export class Leaf {
     this.attributes = {};
   }
 
+  /**
+   * Set attribute to this node
+   */
   attr(key,v_or_func) {
-    // isNumeric => parseFloat
-    this.attributes[key] = (!isNaN(parseFloat(v_or_func)) && isFinite(v_or_func)) ? parseFloat(v_or_func) : v_or_func;
-
+    if (typeof v_or_func === 'function') {
+      this.attributes[key] = v_or_func(this.dataset);
+    }
+    else if (v_or_func instanceof Layout) {
+      this.attributes[key] = v_or_func.generate(this.dataset);
+    }
+    else {
+      // isNumeric => parseFloat
+      this.attributes[key] = (!isNaN(parseFloat(v_or_func)) && isFinite(v_or_func)) ? parseFloat(v_or_func) : v_or_func;
+    }
     return this;
   }
   
+  /**
+   * Set data to this node
+   */
   datum(dataset) {
     this.dataset = dataset;
+    return this;
   }
   
   text(a_string) {
