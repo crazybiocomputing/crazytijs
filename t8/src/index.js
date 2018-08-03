@@ -37,8 +37,8 @@ import {Axis} from './utils/Axis';
 import {axisTop, axisBottom,axisRight, axisLeft} from './utils/axes';
 import {RendererIJ} from './render/RendererIJ';
 import {RendererSVG} from './render/RendererSVG';
-import {interpolateNumber,scaleLinear,extent,min,max} from './utils/scale';
-import {createNode, create, select} from './main';
+import {interpolateNumber,scaleLinear,scaleBand,extent,min,max} from './utils/scale';
+import {createNode, create, format, select} from './main';
 import {line} from './layouts/shapes';
 import {csv} from './loader';
 
@@ -52,8 +52,8 @@ export {
   ScaleLinear,
   Axis,
   axisTop, axisBottom,axisRight, axisLeft,
-  createNode, create,select,
-  interpolateNumber,scaleLinear,extent,min,max,
+  createNode, create, format, select,
+  interpolateNumber,scaleLinear,scaleBand,extent,min,max,
   line,
   csv
 };

@@ -62,13 +62,13 @@ export const axisRight = (scale) => {
  * with empty tick arguments, a tick size of 6 and padding of 3. 
  * In this orientation, ticks are drawn below the horizontal domain path.
  */
-export const axisBottom = (scale) => {
+export const axisBottom = (scale=null) => {
   let tick = {
     args : [],
     size: 6,
     padding: 3
   }
-  return new t8.Axis('bottom',scale,tick);
+  return new Axis('bottom',scale,tick);
 }
 
 
@@ -83,7 +83,7 @@ export const axisLeft = (scale) => {
     size: 6,
     padding: 3
   }
-  return new t8.Axis('left',scale,tick);
+  return new Axis('left',scale,tick);
 }
 
 

@@ -69,8 +69,8 @@ export class Selection {
   append(type) {
   //  console.log('append ' + type);
     let new_nodes = this.active.nodes.map ( (n,i) => {
-      console.log('append::Create Node #' +i + ' ' + type);
-      console.log(n);
+      // console.log('append::Create Node #' +i + ' ' + type);
+      // console.log(n);
       // let child = t8.createNode(type,n);
       return n.append(type);
     });
@@ -80,7 +80,6 @@ export class Selection {
   }
 
   enter() {
-    console.log('enter');
     this._enter = true;
     this.active = this.enterSel;
     return this;
@@ -100,10 +99,10 @@ export class Selection {
    * @author Jean-Christophe Taveau
    */
   attr(key,v_or_func) {
-    console.log(key + '::' + v_or_func);
+    //console.log(key + '::' + v_or_func);
     if (typeof v_or_func === 'function') {
       let self = this;
-      console.log(self._data)
+      //console.log(self._data)
       this.active.dataset.forEach ( (d,i,arr) => {
         // console.log(v_or_func(p.data));
         // console.log('Modif ' + p.type);
@@ -116,6 +115,18 @@ export class Selection {
     return this;
   }
 
+  /**
+   * Set Action depending of event_type
+   *
+   * @author Jean-Christophe Taveau
+   */
+  on(event_type,func) {
+    console.log('Add EVENT ' +  event_type + ' ' + this.active.nodes.length);
+    this.active.nodes.forEach( (n) => n.root.register(n,event_type,func) );
+    return this;
+  }
+  
+  
   /**
    * Specific attributes
    *

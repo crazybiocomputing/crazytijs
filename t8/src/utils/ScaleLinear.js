@@ -29,7 +29,7 @@ export class ScaleLinear {
     this._domain = domain;
     this._range = range;
     this._clamp = clamp;
-    this.interpolator = t8.interpolateNumber(this._domain[0],this._domain[1]);
+    this.interpolator = t8.interpolateNumber(this._range[0],this._range[1]);
     this._clamp = false;
   }
   
@@ -55,6 +55,7 @@ export class ScaleLinear {
    */
   range(boundaries) {
     this._range = boundaries;
+    this.interpolator = t8.interpolateNumber(this._range[0],this._range[1]);
     return this;
   }
   
@@ -69,7 +70,7 @@ export class ScaleLinear {
   }
   
   get(domain_v) {
-    let output =  this.interpolator((domain_v - this._range[0])/(this._range[1] - this._range[0]));
+    let output =  this.interpolator((domain_v - this._domain[0])/(this._domain[1] - this._domain[0]));
     return (this._clamp) ? Math.min(Math.max(this._range[0],output),this._range[1]): output;
   }
 }

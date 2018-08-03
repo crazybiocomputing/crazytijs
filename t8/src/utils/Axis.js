@@ -24,6 +24,9 @@
  
 'use strict';
 
+import {ScaleBand} from './ScaleBand';
+import {ScaleLinear} from './ScaleLinear';
+
 
 /**
  * From "Graphics Gems, Volume 1" by Andrew S. Glassner. 
@@ -35,16 +38,50 @@ export class Axis {
    * @constructor
    */
   constructor(orient,scaleObj,ticks) {
-    this.scale = scaleObj;
+    this.scaler = scaleObj;
     this.ticks = ticks;
     this.ticks.orient = orient;
     this.nicelabel = true;
+    this._format = (v) => v;
+    
     switch (orient) {
-      case 'top': break;
-      case 'bottom': break;
+      case 'top':
+        // Function
+        this.ticks.axisPath = (axisLength) => `M0.0,${-ticks.size}V0.0H${axisLength}V${-ticks.size}`;
+        this.ticks.maxTicks = (axisLength) => 10;
+        // Geometry default parameters
+        this.ticks.geom = {
+          x1: 0,
+          y1: 0,
+          x2: 0,
+          y2: -ticks.size,
+          marginX: 0,
+          marginY: -9,
+          shiftX: 0,
+          shiftY: '-0.71em',
+        };
+        break;
+      case 'bottom': 
+        // Function
+        this.ticks.axisPath = (axisLength) => `M0.0,${ticks.size}V0.0H${axisLength}V${ticks.size}`;
+        this.ticks.maxTicks = (axisLength) => 10;
+        // Geometry default parameters
+        this.ticks.geom = {
+          x1: 0,
+          y1: 0,
+          x2: 0,
+          y2: ticks.size,
+          marginX: 0,
+          marginY: 9,
+          shiftX: 0,
+          shiftY: '0.71em',
+        };
+        break;
       case 'left': 
         // Function
-        this.ticks.axisPath = (axisLength) => `M${-ticks.size},${axisLength}H0.5V0.5H${-ticks.size}`;
+        this.ticks.axisPath = (axisLength) => `M${-ticks.size},${axisLength}H0.0V0.0H${-ticks.size}`;
+        // Simple heuristic: An overall font height is about 15px + 15px as padding for sake of good looking
+        this.ticks.maxTicks = (axisLength) => Math.min(axisLength / 15, 20);
         // Geometry default parameters
         this.ticks.geom = {
           x1: 0,
@@ -57,15 +94,31 @@ export class Axis {
           shiftY: '0.32em',
         };
         break;
-      case 'right': break;
+      case 'right':
+        this.ticks.axisPath = (axisLength) => `M${ticks.size},${axisLength}H0.0V0.0H${ticks.size}`;
+        // Simple heuristic: An overall font height is about 15px + 15px as padding for sake of good looking
+        this.ticks.maxTicks = (axisLength) => Math.min(axisLength / 15, 20);
+        // Geometry default parameters
+        this.ticks.geom = {
+          x1: 0,
+          y1: 0,
+          x2: ticks.size,
+          y2: 0,
+          marginX: 9,
+          marginY: 0,
+          shiftX: 0,
+          shiftY: '0.32em',
+        };
+        break;
     }
   }
   
   /**
+   * Set the Scale 
    *
    */
   scale(scaleObj) {
-    // TODO
+    this.scaler = scaleObj;
     return this;
   }
   
@@ -80,7 +133,7 @@ export class Axis {
   /**
    *
    */
-  tickArguments() {
+  tickArguments(args) {
     return this;
   }
   
@@ -96,7 +149,8 @@ export class Axis {
   /**
    *
    */
-  tickFormat() {
+  tickFormat(formatFunc) {
+    this._format = formatFunc
     return this;
   }
 
@@ -204,7 +258,7 @@ export class Axis {
     let ticks = this.ticks;
     // Get nice labels with Heckbert Algorithm
 
-    let nicelabels = this.heckbert(this.scale.domain[0],this.scale.domain[1]);
+    let nicelabels = this.heckbert(this.scaler.domain[0],this.scaler.domain[1]);
     console.log(nicelabels);
     
     return function (parent) {
@@ -216,28 +270,18 @@ export class Axis {
 
   subgraph(parent) {
     let ticks = this.ticks;
-    let scale = this.scale;
+    let scale = this.scaler;
     
     console.log('AXIS ' + JSON.stringify(ticks));
+    let axisLength = t8.max(scale._range) - t8.min(scale._range);
     
-    if (this.nicelabel) {
-      // Get nice labels with Heckbert Algorithm
-      // Simple heuristic: An overall font height is about 15px + 15px as padding for sake of good looking
-      let axisLength = t8.max(this.scale._range) - t8.min(this.scale._range);
-      let maxTicks = Math.min(axisLength / 15, 20);
-      this.ticks.labels = this.heckbert(this.scale._domain[0],this.scale._domain[1], maxTicks);
-      console.log(this.ticks.labels);
+    if (scale instanceof ScaleLinear) {
+      ticks.data = this._calcTicksFromLinear(scale,ticks.size);
     }
-    ticks.data = [];
-    this.ticks.forEach( (lab, index) =>{
-      ticks.data[index] = {
-        text: lab,
-        value: lab,
-        size: ticks.size,
-        x: 0,
-        y: index
-      }
-    });
+    else if (scale instanceof ScaleBand) {
+      ticks.data = this._calcTicksFromBand(scale,ticks.size);
+    }
+    
     console.log(ticks);
     
     // Depending of orientation (top, bottom)/(left,right) add vertical or horizontal translate(..)
@@ -250,7 +294,7 @@ export class Axis {
     let axis = parent.attr('fill', 'none')
       .attr('font-size', '10')
       .attr('font-family', 'sans-serif')
-      .attr('text-anchor', 'end');
+      .attr('text-anchor', (ticks.geom.y2 !== 0) ? 'middle' : ((ticks.geom.x2 < 0) ? 'end': 'start'));
 
     
     axis.append('path')
@@ -263,7 +307,7 @@ export class Axis {
       .enter()
       .append('g')
         .attr('opacity',1)
-        .attr('transform', (tick) => `translate(${tick.x},${scale.get(tick.value)})`);
+        .attr('transform', (tick) => (ticks.geom.y2 === 0) ? `translate(0,${tick.value})` : `translate(${tick.value},0)`);
 
     gticks.append('line')
       .attr('stroke', '#000')
@@ -278,10 +322,47 @@ export class Axis {
       .attr('y', ticks.geom.marginY)
       .attr('dx', ticks.geom.shiftX)
       .attr('dy', ticks.geom.shiftY)
-      .text( (tick) => tick.text);
+      .text( (tick) => this._format(tick.text));
 
     return parent;
     
   }
   
+  _calcTicksFromLinear(scale,ticksize) {
+    let labels;
+    let axisLength = t8.max(scale._range) - t8.min(scale._range);
+    if (this.nicelabel) {
+      // Get nice labels with Heckbert Algorithm
+      labels = this.heckbert(scale._domain[0],scale._domain[1], this.ticks.maxTicks(axisLength));
+      console.log(labels);
+      // Clamp `outside` labels
+      labels = labels.filter( (lab) => lab >= scale._domain[0] && lab <= scale._domain[1]);
+    }
+    let data = [];
+    labels.forEach( (lab, index) =>{
+      data[index] = {
+        text: lab,
+        value: scale.get(lab),
+        size: ticksize,
+        x: 0,
+        y: index
+      }
+    });
+    return data;
+  }
+  
+  
+  _calcTicksFromBand(scale,ticksize) {
+    let data = [];
+    scale._domain.forEach( (lab, index) =>{
+      data[index] = {
+        text: lab,
+        value: scale.get(lab) + scale.bandwidth() / 2,
+        size: ticksize,
+        x: 0,
+        y: index
+      }
+    });
+    return data;
+  }
 } // End of class Axis

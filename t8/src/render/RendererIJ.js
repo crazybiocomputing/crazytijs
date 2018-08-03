@@ -30,12 +30,15 @@ import * as Draw from './ij/drawPrimitives';
 
 
 /**
- * Generate graphics to ImageProcessor
+ * Generate graphics into a ImageProcessor
  * @class RendererIJ
  *
  * @author Jean-Christophe Taveau
  */
 export class RendererIJ {
+  /**
+   * @constructor
+   */
   constructor(root) {
     this.imp;
     if (root.parent === null) {
@@ -58,10 +61,57 @@ export class RendererIJ {
     
     let r = new RendererIJ(root);
     root.draw(r);
+    // Add events if any
+    // TODO
+    // All the primitives with an attribute with :hover must be followed by the listeners...
+    console.log('LISTENERS MOUSEOVER ' + root.listeners.mouseover.length);
+    console.log('LISTENERS MOUSEOUT ' + root.listeners.mouseout.length);
+    r.offscreen = IJ.createImage(
+        "Picking", 
+        "RGB black", 
+        root.attributes.width, 
+        root.attributes.height,
+        1
+      );
+    root.listeners.mouseover.forEach( (target) => {
+      let n = target.node;
+      switch (n.type) {
+        case 'circle' : 
+          Draw.drawCircle(n,r.offscreen,n.ID);
+          break;
+        case 'ellipse' : 
+          Draw.drawEllipse(n,r.offscreen,n.ID);
+          break;
+        case 'path' : 
+          Draw.drawPath(n,r.offscreen,n.ID);
+          break;
+        case 'polygon' : 
+          Draw.drawPolygon(n,r.offscreen,n.ID);
+          break;
+        case 'rect' : 
+          Draw.drawRectangle(n,r.offscreen,n.ID);
+          break;
+      }
+    });
+    
+    // In nashorn_polyfill.js
+    setOverlay(r,root);
+
+    // DEBUG only
+    // r.offscreen.show();
+    
+    
     // Display Final Result
     r.imp.show();
+    
+
   }
 
+  /**
+   * Draw Root (aka CrazyPlot)
+   *
+   * @author Jean-Christophe Taveau
+   */
   drawRoot(node) {
     // TODO viewBox, margin, padding, etc.
     node.box = {x: 0, y: 0, w: node.attributes.width, h: node.attributes.height};
@@ -75,6 +125,11 @@ export class RendererIJ {
     });
   }
   
+  /**
+   * Draw Ghost - Empty Node
+   *
+   * @author Jean-Christophe Taveau
+   */
   drawGhost(node) {
     console.log('draw ghost');
     RendererIJ.updateNode(node);
@@ -113,10 +168,11 @@ export class RendererIJ {
    * @author Jean-Christophe Taveau
    */
   drawPrimitive(node) {
-    
+
+/*
     const drawCircle = (node) => {
       let ip = this.imp.getProcessor();
-      ip.setColor(CrazyColor.hexToRGB(node.attributes.fill));
+      ip.setColor(CrazyColor.toRGB(node.attributes.fill));
       // Apply matrix
       let xy = [node.attributes.cx - node.attributes.r, node.attributes.cy - node.attributes.r];
       let txy = Matrix.transform(xy,node.matrix);
@@ -141,7 +197,7 @@ export class RendererIJ {
     
     const drawRectangle = (node) => {
       let ip = this.imp.getProcessor();
-      ip.setColor(CrazyColor.hexToRGB(node.attributes.fill));
+      ip.setColor(CrazyColor.toRGB(node.attributes.fill));
       // Apply matrix
       let w = node.attributes.width;
       let h = node.attributes.height;
@@ -169,15 +225,13 @@ export class RendererIJ {
       }
     }
     
-    const drawArc2D = (node) => {
-      // TODO
-    }
+
     
     // Draw Line
     const drawLine = (node) => {
       let ip = this.imp.getProcessor();
       // Setup
-      ip.setColor(CrazyColor.hexToRGB(node.attributes.stroke));
+      ip.setColor(CrazyColor.toRGB(node.attributes.stroke));
       ip.setLineWidth(node.attributes['stroke-width'] || 1);
       // Apply matrix
       let xy1 = [node.attributes.x1 || 0.0, node.attributes.y1 || 0.0];
@@ -188,15 +242,16 @@ export class RendererIJ {
       ip.drawLine(txy1[0], txy1[1], txy2[0], txy2[1]);
       console.log('End of draw line');
     }
-    
+*/
+
     // Main
-    console.log('update Box and Matrix of Primitive ' + node.type);
+    //console.log('update Box and Matrix of Primitive ' + node.type);
     
     // TODO
     // Update box and matrix
     RendererIJ.updateNode(node);
     
-    console.log('draw Primitive ' + node.type);
+    // console.log('draw Primitive ' + node.type);
     switch (node.type) {
       case 'circle' : 
         Draw.drawCircle(node,this.imp);
@@ -246,7 +301,6 @@ export class RendererIJ {
       
       if (typeof value === 'string') {
         if (value.indexOf('em') > -1) {
-          console.log('em ' + value.match(/[\d\.]+/));
           let em = parseFloat(value.match(/[\d\.]+/)[0]);
           let screenResolution = Toolkit.getDefaultToolkit().getScreenResolution();
           let metrics = ip.getFontMetrics();
@@ -308,20 +362,32 @@ export class RendererIJ {
     let fontFamily = getFamily(node._attributes['font-family'] || defaultMetrics.font.family);
     let fontStyle = getStyle(node._attributes['font-style']) | getStyle(node._attributes['font-weight']); ; // TODO Font.ITALIC Font.BOLD 
     let fontSize = em2pix(node._attributes['font-size'] || defaultMetrics.font.size);
+    let textFont = new java.awt.Font(fontFamily,fontStyle,fontSize);
+    ip.setFont(textFont);
+    
     console.log('font ' + fontFamily + ' ' + fontStyle + ' ' + fontSize);
-    ip.setFont(new java.awt.Font(fontFamily,fontStyle,fontSize) );
-    // Set Font Color
-    ip.setColor(new java.awt.Color(CrazyColor.predefined(node._attributes.fill)));
+
     // Set text
     let text = node._attributes.t8_text;
-    let xy = Matrix.transform([node._attributes.x, node._attributes.y,1.0],node.matrix);
     // Set position and orientation
     let dx = em2pix(node._attributes.dx,ip) || 0.0;
     let dy = em2pix(node._attributes.dy,ip) || 0.0;
+
     let text_anchor = (node._attributes['text-anchor'] !== undefined) ? textAnchor(ip,text,node._attributes['text-anchor']) : 0.0;
-    console.log('draw Text ' + node.type + ' [' + xy + '] [' + dx + ',' + dy + ']');
+    
+    let posx = parseFloat((node._attributes.x || 0.0) + Math.round(dx) - text_anchor);
+    let posy = parseFloat((node._attributes.y || 0.0) + Math.round(dy) );
+    let xy = Matrix.transform([posx,posy,1.0],node.matrix);
+    console.log('draw Text ' + node.type + ' [' + xy + '] [' + dx + ',' + dy + '] ' + textAnchor(ip,text,node._attributes['text-anchor']));
     // Display text
-    ip.drawString(text,xy[0] + Math.round(dx) - text_anchor, xy[1] + Math.round(dy));
+    let roi = new TextRoi(`${text}`, xy[0] + 0.0, xy[1] + 0.0 , textFont);
+    // Set Font Color
+    roi.setStrokeColor(new java.awt.Color(CrazyColor.predefined(node._attributes.fill)));
+    // Set Angle
+    roi.setAngle(-Math.atan2(node.matrix[1],node.matrix[0])/Math.PI * 180.0);
+
+    ip.drawRoi(roi);
+    // ip.drawString(text,xy[0] + Math.round(dx) - text_anchor, xy[1] + Math.round(dy));
   }
     
   
@@ -478,7 +544,7 @@ export class RendererIJ {
   static updateNode(node) {
     // Update attributes
     Object.keys(node.attributes).forEach(function(key) { node._attributes[key] = node.attributes[key]; });
-    console.log(JSON.stringify(node._attributes));
+    // console.log(JSON.stringify(node._attributes));
     
     // Update box
     node.box = {
@@ -492,5 +558,6 @@ export class RendererIJ {
     let m = (node.attributes.transform !== undefined) ? RendererIJ.getTransform(node.attributes.transform,node.box.x,node.box.y) : [1,0,0,0,1,0,0,0,1]; 
     node.matrix = Matrix.multiply(node.parent.matrix,m); 
   }
+  
 } // End of class RendererIJ
 

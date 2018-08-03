@@ -33,9 +33,11 @@ export class Leaf {
    */
   constructor(type,parent) {
     // console.log('Create Primitive ' + type);
+
     this.type = type;
     this.name = type;
     this.parent = parent;
+    this.root = (parent == null || parent.type === 'svg') ? parent : parent.root;
     this.attributes = {};
   }
 
@@ -52,6 +54,13 @@ export class Leaf {
     else {
       // isNumeric => parseFloat
       this.attributes[key] = (!isNaN(parseFloat(v_or_func)) && isFinite(v_or_func)) ? parseFloat(v_or_func) : v_or_func;
+      // If the key is an `id`or `class`build the name
+      if (key === 'id' || key === 'class') {
+        let words = v_or_func.split(/\s+/);
+        let self = this;
+        words.forEach ( w => self.name += (key === 'id') ? `#${w}` : `.${w}`);
+      }
+      // TODO
     }
     return this;
   }
@@ -61,6 +70,16 @@ export class Leaf {
    */
   datum(dataset) {
     this.dataset = dataset;
+    return this;
+  }
+  
+  /**
+   * Set Action depending of event_type
+   *
+   * @author Jean-Christophe Taveau
+   */
+  on(event_type,func) {
+    this.root.register(this,event_type,func);
     return this;
   }
   

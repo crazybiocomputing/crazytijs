@@ -24,43 +24,44 @@
  
 'use strict';
 
-import {Leaf} from './Leaf';
-import {Group} from './Group';
-
-// An empty node used for the enter selection
-export class Ghost extends Leaf {
-  /**
-   * @constructor
-   */
-  constructor(type,parent) {
-    super(type,parent);
-    this.children = [];
-  }
-
-  append(type) {
-    const creators = {
-      g: new Group('g',this)
-    };
-    let element = t8.createNode(type,this); // creators[type] || new Primitive(type,this);
-    this.children.push(element);
-    return element;
+export class ScaleOrdinal {
+  constructor(range) {
+    this._domain;
+    this._range = range;
+    this.interpolator = t8.interpolateNumber(this._range[0],this._range[1]);
   }
   
+  
   /**
-   * Generate graphics via a Renderer (SVG, ImageJ, WebGL, etc.)
+   * Set minimum and maximum values of the input data
    *
    * @author Jean-Christophe Taveau
    */
-  draw(a_renderer) {
-    a_renderer.drawGhost(this);
+  domain(boundaries) {
+    this._domain = boundaries;
+    return this;
   }
   
-  traverse(func) {
-    func(this);
-    this.children.forEach( child => child.traverse(func));
+  /**
+   * Set the output range that you would like your input values to map to.
+   *
+   * @author Jean-Christophe Taveau
+   */
+  range(boundaries) {
+    this._range = boundaries;
+    this.interpolator = t8.interpolateNumber(this._range[0],this._range[1]);
+    return this;
   }
   
-} // End of class Ghost
-
-
+  interpolate(interpolatorFunc) {
+    this.interpolator = interpolatorFunc;
+    return this;
+  }
+  
+  
+  ordinal(domain_v) {
+    let output =  this.interpolator((domain_v - this._domain[0])/(this._domain[1] - this._domain[0]));
+    return (this._clamp) ? Math.min(Math.max(this._range[0],output),this._range[1]): output;
+  }
+}
 

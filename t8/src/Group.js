@@ -35,6 +35,9 @@ export class Group extends Leaf {
    */
   constructor(type,parent) {
     super(type,parent);
+    if (this.root !== null) {
+      this.ID = this.root.requestID();
+    }
     this.children = [];
   }
 
@@ -47,6 +50,7 @@ export class Group extends Leaf {
   call(node) {
     // TODO Dirty because modify `this` node.
     // Modify `this` and append subgraph.
+    // Could be a function or something else....
     node.subgraph(this);
     return this;
   }
@@ -71,15 +75,13 @@ export class Group extends Leaf {
    */
   querySelector(selectors) {
     const selectFunc = (sel) => (el) => {
-      // TODO regex
-      if (el.name === selectors) {
+      if (selectors.split(/\s+/).every( sel => el.name.indexOf(sel) !== -1)) {
         sel.push(el);
       }
       return sel;
     }
     let selected = [];
     this.traverse( selectFunc(selected));
-    // selected.forEach( (e,i) => console.log(i + ': ' + e.name));
     return selected;
   }
 
@@ -97,7 +99,7 @@ export class Group extends Leaf {
     a_renderer.drawGroup(this);
   }
   
-  
+/*
   toSVG() {
     let self = this;
     let attrList = Object.keys(this.attributes).reduce ((str,key) => `${str} ${key}="${self.attributes[key]}" `,' ');
@@ -106,7 +108,7 @@ export class Group extends Leaf {
     xml += `</${self.type}>\n`;
     return xml;
   }
-  
+*/
   
 } // End of class Group
 

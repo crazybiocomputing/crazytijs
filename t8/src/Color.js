@@ -185,6 +185,27 @@ Color._predefined = {
 'yellowgreen':[154,205,50]
 };
 
+Color.toRGB = (v) => {
+  // Check if hexadecimal
+  if (v[0] === '#') {
+    let hexa = v.slice(1); // Remove #
+    if (hexa.length === 3) {
+      // Dirty way :-(
+      let w = `${hexa[0]}${hexa[0]}${hexa[1]}${hexa[1]}${hexa[2]}${hexa[2]}`;
+      return parseInt(w,16);
+    }
+    else if (hexa.length === 6) {
+      return parseInt(hexa,16);
+    }
+  }
+  else {
+    // Check if color is predefined
+    let col = Color._predefined[v] || [0,0,0];
+    return (col[0] << 16) | (col[1] << 8) | col[2];
+  }
+
+}
+
 Color.hexToRGB = (v) => {
   let hexa = v.slice(1); // Remove #
   if (hexa.length === 3) {

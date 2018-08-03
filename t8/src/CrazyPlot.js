@@ -40,8 +40,39 @@ export class CrazyPlot extends Group {
   // Constructor
   constructor(type,parent) {
     super(type,parent);
+    
+    // Listeners for mouse events
+    this.listeners = {
+      mouseover: [],
+      mouseout: []
+    }
+    
+    // Style if any
+    this.style = {}
+    
+    // IDs
+    this.IDs = 1;
+    
+    this.ID = this.requestID();
   }
    
+  /**
+   * Set Style to the svg
+   * 
+   * @author Jean-Christophe Taveau
+   */
+  css(css_str) {
+   // TODO
+   // Parse and convert in an array of attributes
+   // Remove EOL and check for brackets {..} and in-between the selectors
+   // fill, font, 
+   return this;
+  }
+   
+  requestID() {
+    return this.IDs++;
+  }
+  
   /**
    * @author Jean-Christophe Taveau
    */
@@ -76,12 +107,24 @@ export class CrazyPlot extends Group {
     a_renderer.drawRoot(this);
   }
   
-  
   /**
-   * Generate SVG code
+   * Manage Events
    *
    * @author Jean-Christophe Taveau
    */
+  register(node,event_type,callback) {
+    this.listeners[event_type].push({
+      node: node,
+      callback: callback
+    });
+  }
+   
+  /**
+   * @obsolete
+   * Generate SVG code
+   *
+   * @author Jean-Christophe Taveau
+
   toSVG() {
     let self = this;
     let attrList = Object.keys(this.attributes)
@@ -105,7 +148,7 @@ export class CrazyPlot extends Group {
     }
     return xml;
   }
-
+   */
 
 } // End of class CrazyPlot
 

@@ -35,20 +35,26 @@ import {Color as CrazyColor}  from '../../Color';
  */
 
 
-const drawJavaPolygon = (imp,polygon,style) => {
+const drawJavaPolygon = (imp,polygon,style,color=-1) => {
   let ip = imp.getProcessor();
   // Setup
   ip.setLineWidth(style['stroke-width'] || 1);
   
   // Draw...
-  if (style.stroke !== 'none' && style.stroke !== 'transparent') {
-    ip.setColor(CrazyColor.hexToRGB(style.stroke));
-    ip.moveTo(polygon.x[0], polygon.y[0]);
-    polygon.x.forEach ( (x,i) => ip.lineTo(x, polygon.y[i])); 
-  }
-  if (style.fill !== 'none' && style.fill !== 'transparent') {
-    ip.setColor(CrazyColor.hexToRGB(style.fill));
+  if (color !== -1) {
+    ip.setColor(color);
     ip.fillPolygon(new java.awt.Polygon(polygon.x, polygon.y, polygon.x.length));
+  }
+  else {
+    if (style.stroke !== 'none' && style.stroke !== 'transparent') {
+      ip.setColor(CrazyColor.toRGB(style.stroke));
+      ip.moveTo(polygon.x[0], polygon.y[0]);
+      polygon.x.forEach ( (x,i) => ip.lineTo(x, polygon.y[i])); 
+    }
+    if (style.fill !== 'none' && style.fill !== 'transparent') {
+      ip.setColor(CrazyColor.toRGB(style.fill));
+      ip.fillPolygon(new java.awt.Polygon(polygon.x, polygon.y, polygon.x.length));
+    }
   }
 }
 
@@ -58,7 +64,7 @@ const drawJavaPolygon = (imp,polygon,style) => {
 /**
  * Draw Arc
  */
-export const drawArc = (node,imp) => {
+export const drawArc = (node,imp,color=-1) => {
   // Syntax: A rx ry x-axis-rotation large-arc-flag sweep-flag x y
   // Step #1 - Create an oval and Convert in a java.awt.Polygon
   let oval = new OvalRoi(0,0,node.attributes.rx * 2, node.attributes.ry * 2).getPolygon();
@@ -77,9 +83,9 @@ export const drawArc = (node,imp) => {
 /**
  * Draw Circle
  */
-export const drawCircle = (node,imp) => {
+export const drawCircle = (node,imp,color=-1) => {
   let ip = imp.getProcessor();
-  ip.setColor(CrazyColor.hexToRGB(node.attributes.fill));
+  ip.setColor(CrazyColor.toRGB(node.attributes.fill));
   // Apply matrix
   let xy = [node.attributes.cx - node.attributes.r, node.attributes.cy - node.attributes.r];
   let txy = Matrix.transform(xy,node.matrix);
@@ -105,7 +111,7 @@ export const drawCircle = (node,imp) => {
 /**
  * Draw Ellipse
  */
-export const drawEllipse = (node,imp) => {
+export const drawEllipse = (node,imp,color=-1) => {
   // Syntax: A rx ry x-axis-rotation large-arc-flag sweep-flag x y
   // Step #1 - Create an oval
   
@@ -121,7 +127,7 @@ export const drawEllipse = (node,imp) => {
    }
 
   // Step #4 - Draw...
-  drawJavaPolygon(imp,polygon,node.attributes);
+  drawJavaPolygon(imp,polygon,node.attributes,color);
 }
 
 /**
@@ -130,7 +136,7 @@ export const drawEllipse = (node,imp) => {
 export const drawLine = (node,imp) => {
     let ip = imp.getProcessor();
     // Setup
-    ip.setColor(CrazyColor.hexToRGB(node.attributes.stroke));
+    ip.setColor(CrazyColor.toRGB(node.attributes.stroke));
     ip.setLineWidth(node.attributes['stroke-width'] || 1);
     // Apply matrix
     let xy1 = [node.attributes.x1 || 0.0, node.attributes.y1 || 0.0];
@@ -145,7 +151,7 @@ export const drawLine = (node,imp) => {
 /**
  * Draw Path
  */
-export const drawPath = (node,imp) => {
+export const drawPath = (node,imp,color=-1) => {
   console.log('Draw PATH....');
   // Step #1: Get Polygon...
   let polygon = Path.getPolygonFromPath(node.attributes.d);
@@ -161,11 +167,11 @@ export const drawPath = (node,imp) => {
    }
    
   // Step #3: Draw...
-  drawJavaPolygon(imp,polygon,node.attributes);
+  drawJavaPolygon(imp,polygon,node.attributes,color);
 }
     
 
-export const drawPolygon = (node,imp) => {
+export const drawPolygon = (node,imp,color=-1) => {
   // Step #1: Get Polygon...
   let polygon = {x:[],y:[]};
   
@@ -187,13 +193,13 @@ export const drawPolygon = (node,imp) => {
    }
    
   // Step #3: Draw...
-  drawJavaPolygon(imp,polygon,node.attributes);
+  drawJavaPolygon(imp,polygon,node.attributes,color);
 }
     
 /**
  * Draw Rectangle
  */
-export const drawRectangle = (node,imp) => {
+export const drawRectangle = (node,imp,color=-1) => {
   let ip = imp.getProcessor();
   // Setup
   let w = +node.attributes.width;
@@ -205,9 +211,7 @@ export const drawRectangle = (node,imp) => {
   polygon.x[2] = polygon.x[0] + w; polygon.y[2] = polygon.y[0] + h;
   polygon.x[3] = polygon.x[0]    ; polygon.y[3] = polygon.y[0] + h;
   
-  console.log('X= ' + polygon.x);
-  console.log('Y= ' + polygon.y);
-  
+
   // Step #2: Apply matrix
   for (let i = 0; i < polygon.x.length;i++) {
     let xy = [polygon.x[i], polygon.y[i], 1.0];
@@ -216,10 +220,10 @@ export const drawRectangle = (node,imp) => {
     polygon.y[i] = txy[1];
    }
     
-  console.log('X= ' + polygon.x);
-  console.log('Y= ' + polygon.y);
+  //console.log('X= ' + polygon.x);
+  //console.log('Y= ' + polygon.y);
   
-  drawJavaPolygon(imp,polygon,node.attributes);
+  drawJavaPolygon(imp,polygon,node.attributes,color);
   
 }
 

@@ -33,6 +33,7 @@ export class Primitive extends Leaf {
    */
   constructor(type,parent) {
     super(type,parent);
+    this.ID = this.root.requestID();
     this.attributes = {
       fill: 'none',
       stroke: 'none'

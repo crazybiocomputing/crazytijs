@@ -33,7 +33,7 @@ export class Text extends Primitive {
    */
   constructor(type,parent) {
     super(type,parent);
-    console.log('Create Text');
+    this.ID = this.root.requestID();
     this.attributes = {}; // Reset attributes
   }
 

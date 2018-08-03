@@ -62,3 +62,23 @@ export const select = (selector) => {
   }
 }
 
+/**
+ * Set Format according to Python 3 specifications
+ *
+ * From https://docs.python.org/3/library/string.html#format-specification-mini-language
+ * format_spec     ::=  [[fill]align][sign][#][0][width][grouping_option][.precision][type]
+ * fill            ::=  <any character>
+ * align           ::=  "<" | ">" | "=" | "^"
+ * sign            ::=  "+" | "-" | " "
+ * width           ::=  digit+
+ * grouping_option ::=  "_" | ","
+ * precision       ::=  digit+
+ * type            ::=  "b" | "c" | "d" | "e" | "E" | "f" | "F" | "g" | "G" | "n" | "o" | "s" | "x" | "X" | "%"
+ */
+export const format = (format_str) => (v) => {
+  // TODO
+  
+  return v;
+
+}
+

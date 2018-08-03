@@ -25,13 +25,14 @@
 'use strict';
 
 import {ScaleLinear} from './ScaleLinear';
+import {ScaleBand} from './ScaleBand';
 
 export const min = (data) => {
   return data.reduce( (_min,d) => Math.min(_min,d), Number.MAX_VALUE );
 }
 
-export const max = (data) => {
-  return data.reduce( (_max,d) => Math.max(_max,d), Number.MIN_VALUE );
+export const max = (data,func= (d) => d ) => {
+  return data.map( (d,i) => func(d,i)).reduce( (_max,d) => Math.max(_max,d), Number.MIN_VALUE );
 }
 
 export const extent = (data) => {
@@ -82,6 +83,7 @@ export const scaleOrdinal = () => {
 
 export const scaleBand = () => {
   // TODO
+  return new ScaleBand();
 }
 
 export const scalePoint = () => {
