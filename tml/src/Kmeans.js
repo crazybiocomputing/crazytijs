@@ -26,7 +26,7 @@
 'use strict';
 
 
-import * as nj from './common';
+import * as tu from './utilities';
 import {DataFrame} from './DataFrame';
 
 const sum = (vec) => vec.reduce( (accu,v) => accu + v,0.0);
@@ -236,8 +236,8 @@ export class Kmeans {
       let best_dist_sq  = undefined;
       for (let trial = 0; trial < n_local_trials; trial++) {
         // Compute potential when including center candidate
-        let new_dist_sq = nj.minimum(closest_dist_sq, distance_to_candidates[trial]);
-        let new_pot = nj.sum(new_dist_sq);
+        let new_dist_sq = tu.minimum(closest_dist_sq, distance_to_candidates[trial]);
+        let new_pot = tu.sum(new_dist_sq);
 
         //  Store result if it is the best local trial so far
         if ((best_candidate === undefined) || (new_pot < best_pot)) {
