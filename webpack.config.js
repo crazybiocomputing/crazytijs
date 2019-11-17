@@ -3,12 +3,12 @@ const path = require("path");
 
 
 let config = {
-  entry: "./t8/index.js",
-  mode: 'development',
+  entry: "./t8/src/index.js",
+  mode: "development",
   output: {
-    path: path.resolve(__dirname, "../"),
+    path: path.resolve(__dirname, "build"),
     filename: "t8.js",
-    libraryTarget: 'umd'
+    libraryTarget: "umd"
   },
   module: {
     rules: [

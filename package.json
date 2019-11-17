@@ -5,23 +5,26 @@
   "main": "tijs.js",
   "scripts": {
     "babel": "babel --presets es2015 js/main.js -o build/main.bundle.js",
-    "dev": "webpack"
+    "t8": "webpack",
+    "tml": "webpack --config webpack.tml.config.js"
+
   },
   "keywords": [],
   "author": "Jean-Christophe Taveau",
   "license": "GPL-v3",
   "babel": {
     "presets": [
-      "env",
-      "stage-2"
+      "@babel/preset-env"
     ]
   },
   "devDependencies": {
+    "@babel/core": "^7.6.4",
+    "@babel/preset-env": "^7.6.3",
     "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.4",
+    "babel-loader": "^8.0.6",
     "babel-preset-env": "^1.7.0",
     "babel-preset-stage-2": "^6.24.1",
-    "webpack": "^4.12.2",
-    "webpack-cli": "^3.0.8"
+    "webpack": "^5.0.0-beta.1",
+    "webpack-cli": "^3.3.9"
   }
 }
