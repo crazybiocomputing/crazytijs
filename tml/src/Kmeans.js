@@ -46,7 +46,7 @@ export class Kmeans {
    * @param {DataFrame} - df Data in a DataFrame object   
    * @param {string} - init Centroids initialization method: 'random' (default) or 'k-means++'
    */
-  fit(df,init="random",distanceFunc = Kmeans.squaredEuclidean) {
+  fit(df,init="k-means++",distanceFunc = Kmeans.squaredEuclidean) {
 
     const getCentroids = {
       'noise': this.noiseCentroids,
