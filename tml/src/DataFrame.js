@@ -65,6 +65,14 @@ export class DataFrame {
     return 12345678;
   }
 
+  static BOOLEAN() {
+    return 1;
+  }
+
+  static NUMBER() {
+    return  42;
+  }
+
   get dtypes() {
     const dataTypes = [
       '-','boolean','-','-','date','-','category','-','byte',
@@ -141,14 +149,21 @@ export class DataFrame {
     else if (className.indexOf('ImagePlus') !== -1 && data.getNSlices() > 1) {
       this.fromStack(data.getStack());
     }
-    else if (className.indexOf('Processor')) {
+    else if (className.indexOf('Processor') !== -1) {
       this.fromProcessor(data);
     }
     else if (className.indexOf('ImageStack') !== -1) {
       this.fromStack(data);
     }
     else if (className.indexOf('ResultsTable') !== -1) {
+      this.fromResults(data);
+    }
+    else if (className.indexOf('String') !== -1) {
       this.fromTable(data);
+    }
+    else {
+      IJ.showMessage('ERR: Cannot Load Data');
+      throw('EXIT: End of Script');
     }
   }
 
@@ -212,13 +227,13 @@ export class DataFrame {
   }
 
   fromProcessor(ip) {
-    let w = stack.getWidth();
-    let h = stack.getHeight();
+    let w = ip.getWidth();
+    let h = ip.getHeight();
 
     this._data = new FloatProcessor(w, h);
     this._width = w;
     this._height = h;
-    this._dtypes = stack.getBitDepth();
+    this._dtypes = ip.getBitDepth();
     this._rows   = Array.from({length: this._height}, (i,v) => i);
     this._columns = Array.from({length: this._width}, (i,v) => i);
     // Copy Processor
@@ -227,7 +242,32 @@ export class DataFrame {
     }
   }
 
-  fromTable(table_name) {
+  fromResults(table) {
+    console.log('Results');
+    // Step #1: Read the ImageJ column headings
+    // In a ResultsTAble, the first column is the row index and must be removed
+    this._columns = table.getColumnHeadings().split(/[\t,]+/).slice(1);
+
+    console.info(JSON.stringify(this._columns) );
+    // Step #2: Guess types of columns
+    this._dtypes = Array.from({length: this._columns.length},_ => DataFrame.NUMBER);
+
+    // Step #3: Fill the FloatProcessor
+    let w = this._columns.length;
+    let h = table.getColumn(0).length;
+    this._data = new FloatProcessor(w, h);
+    this._width = w;
+    this._height = h;
+
+    this._columns.forEach( (heading,x) => {
+      let idx = table.getColumnIndex(heading);
+      Java.from(table.getColumn(idx)).forEach( (v,y) => {
+        this._data.setf(x, y, v );
+      });
+    });
+  }
+
+ fromTable(table_name) {
     // Step #1: Read the ImageJ TextWindow and Extract values...
     let win = WindowManager.getWindow(table_name);
     let rows = win.getTextPanel().getText().split('\n');
@@ -241,6 +281,7 @@ export class DataFrame {
     }
 
     // Step #3: Fill the FloatProcessor
+
   }
 
   array() {
@@ -255,7 +296,8 @@ export class DataFrame {
         out[i][j] = tmp[j][i];
       }
     }
-    return out;
+
+    return (out.length === 1) ? out[0] : out;
   }
 
   flatArray() {
@@ -291,15 +333,24 @@ export class DataFrame {
 
   column(col) {
     // TODO
-    let df = new DataFrame();
-    let _col = [];
-    for (let y = 0; y < this._height; y++) {
-      _col.push(this._data.getf(col,y));
+    let index;
+    if (isNaN(col) ) {
+      index = this._columns.indexOf(col);
     }
-    // NASHORN Trick
-    df._data = new FloatProcessor(1, this._height, Java.to(_row, "float[]") );
-    df._columns = [this._columns[col]]; 
-    df._rows = this._rows.map( r => r);
+    else {
+      index = col;
+    }
+
+    let df = new DataFrame();
+    df._width = this._height;
+    df._height = 1;
+    df._data = new FloatProcessor(this._height,1);
+    df._columns = [this._columns[index]]; 
+    df._rows = [0];
+    df._dtypes = [this._dtypes[index]];
+    for (let y = 0; y < this._height; y++) {
+      df._data.setf(y,0,this._data.getf(index,y));
+    }
     // TODO df._dtypes = this.dtypes.map( t => t);
     return df;
   }
@@ -311,11 +362,12 @@ export class DataFrame {
     for (let x = 0; x < this._width; x++) {
       _row.push(this._data.getf(x,index));
     }
+    console.log(_row.length);
     // NASHORN Trick
     df._data = new FloatProcessor(this._width, 1, Java.to(_row, "float[]") );
     df._columns = this._columns.map( c => c);
-    df._rows = [this._rows[index]];
-    // TODO df._dtypes = this.dtypes.map( t => t);
+    df._rows = (this._rows === undefined) ? index : [this._rows[index]];
+    df._dtypes = this._dtypes.map( t => t);
     return df;
   }
 
@@ -333,13 +385,25 @@ export class DataFrame {
   }
 
   select(...column_names) {
-    let df = new DataFrame();
     let ncols = column_names.length;
-    let nrows = this._rows;
-    df._data = new FloatProcessor(ncols, nrows, this._data.getPixelsCopy() );
-    for (let n of column_names) {
-      
-    }
+    let nrows = this._height;
+    console.log(ncols);
+    let df = new DataFrame();
+    df._width = ncols;
+    df._height = nrows;
+    df._columns = column_names;
+    df._dtypes = new Array(ncols);
+    df._data = new FloatProcessor(ncols, nrows);
+
+    column_names.forEach( (heading,x) => {
+      let oldx = this._columns.indexOf(heading);
+      df._dtypes[x] = this._dtypes[oldx];
+      for (let y = 0; y < nrows; y++) {
+        let v = this._data.getf(oldx,y);
+        df._data.setf(x,y,v);
+      }
+    });
+
     return df;
   }
 
@@ -380,7 +444,9 @@ export class DataFrame {
    * Use for display in console
    */
   toString() {
-    let str = ''
+    let str = 'Not yet implemented';
+    
+    return str;
   }
 
   /**
