@@ -7,17 +7,17 @@ let df = new DataFrame();
 ## Properties
 
 ###  `headings`
-Returns the column headings as a _Array_.
+Returns the column headings as a  _Array_.
 
 ###  `shape`
 Returns the size of the DataFrame as a _Array_ containing the number of rows and of columns, respectively.
 
 ## Methods
 ###  `array()`
-Convert the DataFrame as a _Array_. 
+Convert **this** DataFrame as a JavaScript _Array_ of _Array_. If the DataFrame is composed of one single column, the resulting _Array_ is transposed and returned as a 1D _Array_. 
 
-###  `column(col_name)`
-Returns the column labeled as `rcol_name` in **this** DataFrame.
+###  `column(col_heading)`
+Returns the column labeled as `col_heading` in **this** DataFrame.
 
 ```javascript
 let table = ResultsTable.getResultsTable();
@@ -25,6 +25,10 @@ let df = new DataFrame();
 df.fromIJ(table);
 let areas = df.column('Area');
 ```
+
+###  `fromCSV(data,sep=',')`
+This method loads data from a _String_ containing data in CSV format. The second argument is the separator &mdash; by default, the comma &mdash;.
+> **Note**: The first line must contained the column headings. According to ImageJ convention, if the first heading is a space character, it is considered as the row index.
 
 ###  `fromIJ(data_IJ)`
 This method loads data from ResultsTable, ImagePlus, ImageStack, ImageProcessor
