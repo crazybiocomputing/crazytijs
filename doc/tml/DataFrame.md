@@ -30,6 +30,18 @@ let areas = df.column('Area');
 This method loads data from a _String_ containing data in CSV format. The second argument is the separator &mdash; by default, the comma &mdash;.
 > **Note**: The first line must contained the column headings. According to ImageJ convention, if the first heading is a space character, it is considered as the row index.
 
+```javascript
+const csv = `A,B,C
+0,4,8
+1,5,9
+2,6,10
+3,7,11
+`;
+let df = new DataFrame();
+df.fromCSV(csv);
+console.log(df.shape);
+```
+
 ###  `fromIJ(data_IJ)`
 This method loads data from ResultsTable, ImagePlus, ImageStack, ImageProcessor
 
