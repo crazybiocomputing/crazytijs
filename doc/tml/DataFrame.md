@@ -39,7 +39,17 @@ const csv = `A,B,C
 `;
 let df = new DataFrame();
 df.fromCSV(csv);
+df.index = ['0001','0002','0003','0004'];
 console.log(df.shape);
+console.log(df.head(3) );
+```
+Expected result
+
+```
+      A    B    C  
+0001| 0.00 4.00 8.00 
+0002| 1.00 5.00 9.00 
+0003| 2.00 6.00 10.00 
 ```
 
 ###  `fromIJ(data_IJ)`
