@@ -33,8 +33,8 @@ Print in the console the first `n` rows.
 ###  `irow(i)`
 Returns the i<sup>th</sup> row as a DataFrame. The first row has an index of 0.
 
-###  `irows(i<sub>0</sub>,i<sub>1</sub>,..., i<sub>n</sub>)`
-Returns the rows defined by their indexes as a DataFrame. The first row has an index of 0.
+###  `irows(i0,i1,..., in)`
+Returns a DataFrame containing the rows defined by their indexes i<sub>0</sub>,i<sub>1</sub>,..., i<sub>n</sub>. The first row has an index of 0.
 An alternative way is to use a _Array_ of indexes.
 
 ```javascript
