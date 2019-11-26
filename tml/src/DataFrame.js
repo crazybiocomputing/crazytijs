@@ -123,7 +123,7 @@ export class DataFrame {
 
   set index(rows) {
     // Copy
-    this._rows = rows.map( (v) => v);
+    this._rows = rows.map( (v) => v); // Copy
   }
 
   from(data) {
@@ -198,16 +198,35 @@ export class DataFrame {
     // TODO
   }
 
-  fromCSV(table,sep=',',order='row') {
-    // TODO
-    if (order == 'row') {
+  fromCSV(data,sep=',') {
+    // TODO 
+    let flagIJ = false;
+    let table = data.split('\n');
+    this._columns = table[0].split(sep);
+    if (this._columns[0].trim().length === 0) {
+      this._columns = this._columns.slice(1);
+      flagIJ = true;
     }
-    else if (order == 'column') {
+    this._width = this._columns.length;
+    this._height = table.length;
+    this._data = new FloatProcessor(this._width,this._height);
+    this._dtypes = Array.from({length: table.length}, (_,i) => DataFrame.NUMBER);
+    if (flagIJ) {
+      this._rows   = Array.from({length: table.length}, (_,i) => i + 1);
     }
     else {
-      alert('Unknown order - Must be `row` or `column`');
+      this._rows   = Array.from({length: table.length}, (_,i) => 0);
     }
-    this._data = new FloatProcessor(other);
+
+    // Fill the data
+    for (let y = 1; y < table.length; y++) {
+      let row = table[y].split(sep);
+      for (let x = 0; x < row.length; x++) {
+        // TODO categorical
+        let v = (isNaN(row[x])) ? -1: parseFloat(row[x]);
+        this._data.setf(x,y - 1,v);
+      }
+    }
   }
 
 
