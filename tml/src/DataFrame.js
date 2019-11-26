@@ -69,8 +69,12 @@ export class DataFrame {
     return 1;
   }
 
-  static NUMBER() {
+  static get NUMBER() {
     return  42;
+  }
+
+  static alphabet() {
+    return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   }
 
   get dtypes() {
@@ -215,9 +219,9 @@ export class DataFrame {
     this._data = new FloatProcessor(w * h, num);
     this._width = w * h;
     this._height = num;
-    this._dtypes = stack.getBitDepth();
-    this._rows   = Array.from({length: this._height}, (i,v) => i);
-    this._columns = Array.from({length: this._width}, (i,v) => i);
+    this._dtypes = Array.from({length: w}, _ => stack.getBitDepth());
+    this._rows   = Array.from({length: this._height}, (_,i) => i + 1);
+    this._columns = Array.from({length: this._width}, (_,i) => i); // TODO A,B,....,Z, AA, ...AZ,BA, BB, ... ZZ, AAA, ... ZZZ
     for (let z=1; z <= num; z++) {
       let ip = stack.getProcessor(z);
       for (let i = 0; i < w * h ; i++) {
@@ -233,7 +237,7 @@ export class DataFrame {
     this._data = new FloatProcessor(w, h);
     this._width = w;
     this._height = h;
-    this._dtypes = ip.getBitDepth();
+    this._dtypes = Array.from({length: w}, _ => ip.getBitDepth());
     this._rows   = Array.from({length: this._height}, (i,v) => i);
     this._columns = Array.from({length: this._width}, (i,v) => i);
     // Copy Processor
@@ -243,14 +247,14 @@ export class DataFrame {
   }
 
   fromResults(table) {
-    console.log('Results');
+    // HACK console.log('Results');
     // Step #1: Read the ImageJ column headings
-    // In a ResultsTAble, the first column is the row index and must be removed
+    // In a ResultsTable, the first column is the row index and must be removed
     this._columns = table.getColumnHeadings().split(/[\t,]+/).slice(1);
-
+    this._rows   = Array.from({length: table.getColumn(0).length}, (_,i) => i + 1);
     console.info(JSON.stringify(this._columns) );
     // Step #2: Guess types of columns
-    this._dtypes = Array.from({length: this._columns.length},_ => DataFrame.NUMBER);
+    this._dtypes = Array.from({length: this._columns.length}, _ => DataFrame.NUMBER);
 
     // Step #3: Fill the FloatProcessor
     let w = this._columns.length;
@@ -288,6 +292,9 @@ export class DataFrame {
     // TODO: replace the Categoricals and the booleans.
     let tmp = toArrayJS(this._data.getFloatArray());
     tmp =  tmp.map( (vec) => toArrayJS(vec));
+    if (this._width === 1) {
+      return tmp[0];
+    }
     // Need to transpose...
     let out = [];
     for (let i=0; i < tmp[0].length; i++) {
@@ -298,11 +305,6 @@ export class DataFrame {
     }
 
     return (out.length === 1) ? out[0] : out;
-  }
-
-  flatArray() {
-    // TODO: replace the Categoricals and the booleans.
-    return this._data.getFloatArray().flat();
   }
 
 
@@ -327,48 +329,141 @@ export class DataFrame {
   }
 
   categorical(categories) {
+    throw('Not Yet Implemented');
     if (this._categorical.includes(categories)) {
     }
   }
 
-  column(col) {
-    // TODO
-    let index;
-    if (isNaN(col) ) {
-      index = this._columns.indexOf(col);
-    }
-    else {
-      index = col;
-    }
-
+  icolumn(col) {
+    let index = col;
     let df = new DataFrame();
-    df._width = this._height;
-    df._height = 1;
-    df._data = new FloatProcessor(this._height,1);
+    df._width = 1;
+    df._height = this._height;
+    df._data = new FloatProcessor(1,this._height);
     df._columns = [this._columns[index]]; 
-    df._rows = [0];
+    df._rows = this._rows.map( r => r); // Copy
     df._dtypes = [this._dtypes[index]];
     for (let y = 0; y < this._height; y++) {
-      df._data.setf(y,0,this._data.getf(index,y));
+      df._data.setf(0,y,this._data.getf(index,y));
     }
     // TODO df._dtypes = this.dtypes.map( t => t);
     return df;
   }
 
-  row(index) {
+
+  column(col) {
+    // TODO
+    let index = this._columns.indexOf(col);
+    if (index !== -1) {
+      return this.icolumn(index);
+    }
+    else {
+      throw( 'ERR: Unknown column heading');
+    }
+  }
+
+
+  /**
+   * Get sub-dataframe 
+   */
+  iloc(irows,icols) {
+    // TODO
+    let e = (end === -1) ? this._height - 1 : end;
+    let w = (icol_end === -1) ? this._width - icol_start + 1 : icol_end - icol_start + 1;
+    let h = (irow_end === -1) ? this._height - irow_start + 1 : irow_end - irow_start + 1;
+    let ip = this._data;
+    ip.setRoi(0,start,w,h);
+    df._data = ip.crop();
+    // Update
+    df._columns = this._columns.filter( (_,i) => i >= icol_start && i <= icol_end);
+    df._rows = this._rows.filter( (_,i) => ( i >= irow_start && i <= irow_end) );
+    df._dtypes = this._dtypes.filter( (_,i) => i >= icol_start && i <= icol_end);
+
+    return df;
+  }
+
+  /**
+   * Get sub-dataframe
+   */
+  loc(row_start,row_end,col_start,col_end) {
+    throw('Not Yet Implemented');
+  }
+
+  /**
+   * Get row from row index starting from 0 to length - 1
+   */
+  irow(i) {
     // TODO
     let df = new DataFrame();
+    // Use setRoi() and crop()
+    // let ip = this._data;
+    // ip.setRoi(0,i,this._width,1);
+    // df._data = ip.crop();
     let _row = [];
     for (let x = 0; x < this._width; x++) {
       _row.push(this._data.getf(x,index));
     }
-    console.log(_row.length);
+    // HACK  console.log(_row.length);
     // NASHORN Trick
     df._data = new FloatProcessor(this._width, 1, Java.to(_row, "float[]") );
     df._columns = this._columns.map( c => c);
     df._rows = (this._rows === undefined) ? index : [this._rows[index]];
     df._dtypes = this._dtypes.map( t => t);
     return df;
+  }
+
+  /**
+   * Get row from row name
+   */
+  row(row_name) {
+    // TODO Get row number from index
+    let i = this._rows.indexOf(row_name);
+    if (i !== -1) {
+      return irow(i);
+    }
+    else {
+      throw( 'ERR: Unknown row index/name');
+    }
+  }
+
+  irows(...indices) {
+    // TODO
+    let indexes;
+    if ( isNaN(indices[0]) && Array.isArray(indices[0])) {
+      indexes = indices[0];
+    }
+    else {
+      indexes = indices;
+    }
+    let df = new DataFrame();
+    df._data = new FloatProcessor(this._width, indexes.length);
+    df._width = this._width;
+    df._height = indexes.length;
+    df._rows = new Array(indexes.length);
+    df._columns = this._columns.map( c => c);
+    df._dtypes = this._dtypes.map( t => t);
+
+    for (let i=0; i < indexes.length; i++) {
+      let y = indexes[i];
+      for (let x = 0; x < this._width; x++) {
+        df._data.setf(x,i, this._data.getf(x,y) );
+      }
+      // Update
+      df._rows[i] = this._rows[y];
+    }
+    return df;
+  }
+
+  rows(...headings) {
+    let indexes;
+    if ( isNaN(headings[0]) && Array.isArray(headings[0])) {
+      indexes = headings[0];
+    }
+    else {
+      indexes = headings;
+    }
+    let indices = indexes.map( (heading) => this._rows.indexOf(heading) );
+    this.irows(...indices);
   }
 
   reshape(nrows,ncols) {
@@ -384,18 +479,18 @@ export class DataFrame {
     return df;
   }
 
-  select(...column_names) {
-    let ncols = column_names.length;
+  select(...column_headings) {
+    let ncols = column_headings.length;
     let nrows = this._height;
-    console.log(ncols);
+    // HACK console.log(ncols);
     let df = new DataFrame();
     df._width = ncols;
     df._height = nrows;
-    df._columns = column_names;
+    df._columns = column_headings;
     df._dtypes = new Array(ncols);
     df._data = new FloatProcessor(ncols, nrows);
 
-    column_names.forEach( (heading,x) => {
+    column_headings.forEach( (heading,x) => {
       let oldx = this._columns.indexOf(heading);
       df._dtypes[x] = this._dtypes[oldx];
       for (let y = 0; y < nrows; y++) {
@@ -407,7 +502,12 @@ export class DataFrame {
     return df;
   }
 
+  /**
+   * Select rows depending of the `predicate` function
+   */
   where(predicate) {
+
+    // TODO
     let df = new DataFrame();
     let ncols = column_names.length;
     let nrows = this._rows;
@@ -420,17 +520,21 @@ export class DataFrame {
 
   transpose(index) {
     // TODO
-    // Return a new DataFrame/FloatProcessor rotated by 90°
+    // Return a new DataFrame/FloatProcessor 
+
     // Update _rows and _columns.
+    throw('Not Yet Implemented');
   }
 
   describe() {
     // count,mean,std,min,25%,50%,75%,max
+    throw('Not Yet Implemented');
   }
 
   mean(col=-1) {
     if (col === -1) {
     // Compute mean for all the columns
+    throw('Not Yet Implemented');
     }
     else {
       return this.column(col).array().reduce( (mean,v) => mean + v,0.0) / this._height;
@@ -438,14 +542,42 @@ export class DataFrame {
   }
 
   std() {
+    throw('Not Yet Implemented');
   }
 
   /**
-   * Use for display in console
+   * Print in console the first `n` rows
    */
-  toString() {
-    let str = 'Not yet implemented';
-    
+  head(n=5) {
+    return this.toString(n);
+  }
+
+  /**
+   * Print in console the last `n` rows
+   */
+  tail(n=5) {
+    return this.toString(-n);
+  }
+
+  /**
+   * Print in console
+   */
+  toString(n=0) {
+    let start = (n < 0) ? Math.max(0,this._height + n) : 0;
+    let nrows = (n <= 0) ? this._height : n;
+
+    let max_row_length = this._rows[this._rows.length - 1].toString().length;
+    let str = new Array(max_row_length + 2).fill(' ').join(''); // from({length:max_row_length + 2}, _ => ' ').join('');
+    this._columns.forEach( (head) => str += head + '  ');
+    str +='\n';
+    for (let i=start; i < nrows; i++) {
+      str += this._rows[i] + '| ';
+      for (let x = 0; x < this._width; x++) {
+        str += this._data.getf(x,i).toFixed(2) + ' ';
+      }
+      str +='\n';
+    }
+
     return str;
   }
 

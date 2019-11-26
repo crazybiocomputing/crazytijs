@@ -166,6 +166,8 @@ function setOverlay(renderer,root) {
 
 }
 
+
+
 /**
  * Polyfill for Array.findIndex
  */
